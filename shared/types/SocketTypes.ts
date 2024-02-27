@@ -9,5 +9,5 @@ export interface ServerToClientEvents {
 
 // Events emitted by the client to the server
 export interface ClientToServerEvents {
-    JoinTheGame: (nickname:string) => void;
+    JoinTheGame: (nickname:string, callback:(success:boolean) => void) => void;
 }
