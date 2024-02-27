@@ -20,7 +20,7 @@
               id="nickname-input"
               class="form-control form-control-lg"
               required
-              placeholder="Skriv ditt namn för att starta spelet"
+              placeholder="Skriv ditt namn"
             />
           </div>
 
@@ -30,14 +30,25 @@
             class="btn btn-success"
             disabled
           >
-            SPELA!
+            Gå vidare!
           </button>
         </form>
       </div>
     </div>
     <!-- Slut på nickname -->
     <!-- Lobby start -->
-
+    <div id="lobby" class="container">
+      <h2>Välkommen till Lobbyn!</h2>
+      <div id="player-list" class="mb-3">
+        <h3>Anslutna Spelare:</h3>
+        <ul id="players">
+          <!-- Spelare läggs till här med JavaScript -->
+        </ul>
+      </div>
+      <button id="start-game" class="btn btn-primary" disabled>
+        Starta nytt spel
+      </button>
+    </div>
     <!-- text
 
 
@@ -105,31 +116,25 @@
 
     <!-- Lobby slut -->
 
-
-
-
-
-	
     <!-- Spelvy -->
-	<div id="scoreboard-wrapper" class="hide">
-		<h1 id="game-title">Wack a Virus!</h1>
-			<div id="gameBoard">
-		</div>
-	</div>
+    <div id="scoreboard-wrapper" class="hide">
+      <h1 id="game-title">Wack a Virus!</h1>
+      <div id="gameBoard"></div>
+    </div>
 
-	<div id="scoreboard-wrapper">
-		<h2 id="scoreboard-title">Scoreboard</h2>
+    <div id="scoreboard-wrapper">
+      <h2 id="scoreboard-title">Scoreboard</h2>
 
-		<span class="you" id="your-score"></span>
-		<span>-</span>
-		<span class="opponent" id="opponent-score" ></span>
+      <span class="you" id="your-score"></span>
+      <span>-</span>
+      <span class="opponent" id="opponent-score"></span>
 
-		<div class="you" id="your-name">your name</div>
-		<div class="reaction-time">your time</div>
+      <div class="you" id="your-name">your name</div>
+      <div class="reaction-time">your time</div>
 
-		<div class="opponent" id="opponent-name">opponent name</div>
-		<div class="reaction-time">opponent time</div>
-	</div>
+      <div class="opponent" id="opponent-name">opponent name</div>
+      <div class="reaction-time">opponent time</div>
+    </div>
     <!-- Spelvy slut -->
 
     <script type="module" src="/src/main.ts"></script>

@@ -6,4 +6,18 @@ body {
 
 #nickname-form {
   margin-top: 30vh;
+  margin-bottom: 20vh;
+}
+
+#lobby {
+  border: 2px dotted black;
+  margin-bottom: 20vh;
+  padding-top: 5vh;
+  padding-bottom: 5vh;
+}
+
+#start-game {
+  width: 100%;
+  padding: 10px;
+  font-size: 1.2rem;
 }
