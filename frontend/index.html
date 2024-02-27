@@ -10,6 +10,7 @@
   </head>
 
   <body>
+    <div id="app">
     <!-- Här är nickname -->
     <div id="app">
       <div id="nickname" class="container hide">
@@ -116,7 +117,32 @@
 
     <!-- Lobby slut -->
 
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
     <!-- Spelvy -->
+	<h1 id="game-title">Wack a Virus!   🦠</h1>
+
+	<div id="game-wrapper">
+
+		<div id="gameBoard" class="hide"></div>
+		
+		<div id="scoreboard-wrapper">
+			<h2 id="scoreboard-title">Scoreboard</h2>
     <div id="scoreboard-wrapper" class="hide">
       <h1 id="game-title">Wack a Virus!</h1>
       <div id="gameBoard"></div>
@@ -125,17 +151,20 @@
     <div id="scoreboard-wrapper">
       <h2 id="scoreboard-title">Scoreboard</h2>
 
-      <span class="you" id="your-score"></span>
-      <span>-</span>
-      <span class="opponent" id="opponent-score"></span>
+	      <span id="your-score" class="blue, score"></span>
+	      <span class="score">-</span>
+	      <span id="opponent-score" class="orange, score"></span>
 
-      <div class="you" id="your-name">your name</div>
-      <div class="reaction-time">your time</div>
+	      <div id="your-name" class="blue">Your name</div>
+	      <div id="your-time" class="reaction-time">your time</div>
 
-      <div class="opponent" id="opponent-name">opponent name</div>
-      <div class="reaction-time">opponent time</div>
+	      <div id="opponent-name" class="orange">Opponent name</div>
+	      <div id="opponent-time" class="reaction-time">opponent time</div>
+		</div>
     </div>
     <!-- Spelvy slut -->
+
+</div>
 
     <script type="module" src="/src/main.ts"></script>
   </body>
