@@ -11,46 +11,37 @@
 
   <body>
     <div id="app">
-    <!-- Här är nickname -->
-    <div id="app">
-      <div id="nickname" class="container hide">
-        <form id="nickname-form">
-          <div class="mb-3">
-            <input
-              type="text"
-              id="nickname-input"
-              class="form-control form-control-lg"
-              required
-              placeholder="Skriv ditt namn"
-            />
-          </div>
+      <!-- Här är nickname -->
+      <div id="app">
+        <div id="nickname" class="container hide">
+          <form id="nickname-form">
+            <div class="mb-3">
+              <input
+                type="text"
+                id="nickname-input"
+                class="form-control form-control-lg"
+                required
+                placeholder="Write your name"
+              />
+            </div>
 
-          <button
-            type="submit"
-            id="connectBtn"
-            class="btn btn-success"
-            disabled
-          >
-            Gå vidare!
-          </button>
-        </form>
+            <button type="submit" id="connectBtn" disabled>Move on!</button>
+          </form>
+        </div>
       </div>
-    </div>
-    <!-- Slut på nickname -->
-    <!-- Lobby start -->
-    <div id="lobby" class="container">
-      <h2>Välkommen till Lobbyn!</h2>
-      <div id="player-list" class="mb-3">
-        <h3>Anslutna Spelare:</h3>
-        <ul id="players">
-          <!-- Spelare läggs till här med JavaScript -->
-        </ul>
+      <!-- Slut på nickname -->
+      <!-- Lobby start -->
+      <div id="lobby" class="container">
+        <h2>Welcome to the Lobby!</h2>
+        <div id="player-list" class="mb-3">
+          <h3>Connected Players:</h3>
+          <ul id="players">
+            <!-- Spelare läggs till här med JavaScript -->
+          </ul>
+        </div>
+        <button id="start-game" disabled>Start new game</button>
       </div>
-      <button id="start-game" class="btn btn-primary" disabled>
-        Starta nytt spel
-      </button>
-    </div>
-    <!-- text
+      <!-- text
 
 
 
@@ -115,33 +106,30 @@
 
 -->
 
-    <!-- Lobby slut -->
+      <!-- Lobby slut -->
 
+      <!-- Spelvy -->
+      <h1 id="game-title">Wack a Virus! 🦠</h1>
 
-     <!-- Spelvy -->
- <h1 id="game-title">Wack a Virus!   🦠</h1>
+      <div id="game-wrapper">
+        <div id="gameBoard" class="hide"></div>
 
- <div id="game-wrapper">
+        <div id="scoreboard-wrapper">
+          <h2 id="scoreboard-title">Scoreboard</h2>
 
-     <div id="gameBoard" class="hide"></div>
-     
-     <div id="scoreboard-wrapper">
-         <h2 id="scoreboard-title">Scoreboard</h2>
+          <span id="your-score" class="blue, score"></span>
+          <span class="score">-</span>
+          <span id="opponent-score" class="orange, score"></span>
 
-         <span id="your-score" class="blue, score"></span>
-         <span class="score">-</span>
-         <span id="opponent-score" class="orange, score" ></span>
+          <div id="your-name" class="blue">Your name</div>
+          <div id="your-time" class="reaction-time">your time</div>
 
-         <div id="your-name" class="blue">Your name</div>
-         <div id="your-time" class="reaction-time">your time</div>
-
-         <div id="opponent-name" class="orange">Opponent name</div>
-         <div id="opponent-time" class="reaction-time">opponent time</div>
-     </div>
- </div>
- <!-- Spelvy slut -->
-
-</div>
+          <div id="opponent-name" class="orange">Opponent name</div>
+          <div id="opponent-time" class="reaction-time">opponent time</div>
+        </div>
+      </div>
+      <!-- Spelvy slut -->
+    </div>
 
     <script type="module" src="/src/main.ts"></script>
   </body>

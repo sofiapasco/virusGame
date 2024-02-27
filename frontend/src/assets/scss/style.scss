@@ -1,14 +1,33 @@
 @import "bootstrap/scss/bootstrap";
-@import 'variables';
-@import 'layout';
-
-body {
-  background-color: orange;
-}
+@import "variables";
+@import "layout";
 
 #nickname-form {
   margin-top: 30vh;
   margin-bottom: 20vh;
+}
+
+#connectBtn {
+  border-radius: 10%;
+  background-color: $dark-green;
+  color: lightgrey;
+  padding: 1vh;
+}
+
+#connectBtn:hover {
+  background-color: black;
+  color: lightgrey;
+}
+
+#start-game {
+  background-color: $dark-green;
+  color: lightgrey;
+  padding: 1vh;
+}
+
+#start-game:hover {
+  background-color: black;
+  color: lightgrey;
 }
 
 #lobby {
