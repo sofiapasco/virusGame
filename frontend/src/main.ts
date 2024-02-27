@@ -7,6 +7,12 @@ import "./assets/scss/style.scss";
 
 const SOCKET_HOST = import.meta.env.VITE_SOCKET_HOST;
 
+
+const waitRoomButtonEl = document.querySelector("#waitRoom") as HTMLButtonElement
+const nickNameInput = document.querySelector('nickname') as HTMLInputElement
+const startScreenEl =document.querySelector('#startScreen') as HTMLDListElement
+const waitingScreen =document.querySelector('#waitingScreen') as HTMLDivElement
+
 // Connect to Socket.IO Server
 console.log("Connecting to Socket.IO Server at:", SOCKET_HOST);
 const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(SOCKET_HOST);
@@ -26,4 +32,22 @@ socket.on("disconnect", () => {
 socket.io.on("reconnect", () => {
 	console.log("🍽️ Reconnected to the server:", SOCKET_HOST);
 	console.log("🔗 Socket ID:", socket.id);
+});
+
+//Funktion för att ta sig till väntläget
+const showWaitningScreen = () => {
+
+	startScreenEl.style.display = "none"; //början av spelet som döljs
+	waitingScreen.style.display = "block"; // väntrummet visas
+}
+
+/**
+ * När spelaren har skrvit in sitt 'nickname'
+ * och klickar in sig för möta en motståndare
+ */
+waitRoomButtonEl.addEventListener('click',() =>{
+	//Ansluter till serven 
+	socket.emit('JoinTheGame',nickNameInput.value)
+
+	showWaitningScreen();
 });

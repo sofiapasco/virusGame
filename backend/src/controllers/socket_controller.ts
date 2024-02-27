@@ -8,6 +8,9 @@ import { ClientToServerEvents, ServerToClientEvents } from "@shared/types/Socket
 // Create a new debug instance
 const debug = Debug("backend:socket_controller");
 
+// Skapa en array för att spåra väntande spelare
+let waitingPlayers =[];
+
 // Handle a user connecting
 export const handleConnection = (
 	socket: Socket<ClientToServerEvents, ServerToClientEvents>,
@@ -15,3 +18,6 @@ export const handleConnection = (
 ) => {
 	debug("🙋 A user connected", socket.id);
 }
+
+
+
