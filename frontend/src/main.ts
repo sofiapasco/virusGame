@@ -83,7 +83,6 @@ moveOnwaitRoomButtonEl.addEventListener('click',(e) =>{
 				alert("You can not play now, try again later");
 				return;
 			}
-
 		showWaitingRoom();
 	});
 	
