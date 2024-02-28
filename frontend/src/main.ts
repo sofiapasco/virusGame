@@ -7,7 +7,6 @@ import "./assets/scss/style.scss";
 
 const SOCKET_HOST = import.meta.env.VITE_SOCKET_HOST;
 
-
 const moveOnwaitRoomButtonEl = document.querySelector("connectBtn") as HTMLButtonElement
 const nickNameInput = document.querySelector('#nickname-input') as HTMLInputElement
 const startScreenEl =document.querySelector('#app') as HTMLDListElement
@@ -60,7 +59,6 @@ socket.io.on("reconnect", () => {
 	console.log("🍽️ Reconnected to the server:", SOCKET_HOST);
 	console.log("🔗 Socket ID:", socket.id);
 });
-
 /**
  * När spelaren har skrvit in sitt 'nickname'
  * och klickar in sig för möta en motståndare
@@ -90,3 +88,4 @@ moveOnwaitRoomButtonEl.addEventListener('click',(e) =>{
 	});
 	
 });
+
