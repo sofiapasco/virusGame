@@ -44,7 +44,7 @@ const showWaitingRoom = () =>{
 
 //show playingroom
 const showPlayingRoom =() =>{
-startScreenEl.classList.add("hide"); // startrummet döljs
+	startScreenEl.classList.add("hide"); // startrummet döljs
 	waitingScreen.classList.add("hide");// väntrummet kommer attt döljas
 	playingRoom.classList.remove("hide");	
 }
