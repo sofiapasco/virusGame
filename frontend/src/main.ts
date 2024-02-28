@@ -88,3 +88,38 @@ moveOnwaitRoomButtonEl.addEventListener('click',(e) =>{
 	
 });
 
+
+/**
+ *  CAROLINS
+ *  Visa ett virus
+ */
+
+// lyssna efter att servern emittar "positionVirus", anropa sedan showVirus()
+socket.on("positionVirus", () => {
+	showVirus();
+})
+
+function getRandomInt(min: number, max: number) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function showVirus() {
+	const x = getRandomInt(1, 10);
+	const y = getRandomInt(1, 10);
+	const virusImg = document.createElement("img");
+	virusImg.src = "frontend/src/assets/Images/green-virus.png";
+	virusImg.alt = "ugly green virus"
+	virusImg.style.gridColumn = x.toString();
+	virusImg.style.gridColumn = y.toString();
+	// append image to the grid
+	const gameBoard: HTMLElement | null = document.getElementById("gameBoard");
+	if (!gameBoard) {
+		console.error("unable to find gameBoard element")
+	} else {
+		gameBoard.appendChild(virusImg);
+	}
+} 
+
+
+
+
