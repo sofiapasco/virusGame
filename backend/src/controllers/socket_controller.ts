@@ -4,13 +4,15 @@
 
 import Debug from "debug";
 import { Server, Socket } from "socket.io";
-import { ClientToServerEvents, ServerToClientEvents } from "@shared/types/SocketTypes";
+import { ClientToServerEvents, ServerToClientEvents,WaitingPlayer } from "@shared/types/SocketTypes";
+import { waitForDebugger } from "inspector";
 
 // Create a new debug instance
 const debug = Debug("backend:socket_controller");
 
+
 // Skapa en array för att spåra väntande spelare
-let waitingPlayers =[];
+let waitingPlayers: WaitingPlayer =[];
 
 // Handle a user connecting
 export const handleConnection = (
