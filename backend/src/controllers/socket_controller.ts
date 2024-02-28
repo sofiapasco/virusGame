@@ -12,7 +12,7 @@ const debug = Debug("backend:socket_controller");
 
 
 // Skapa en array för att spåra väntande spelare
-let waitingPlayers: WaitingPlayer =[];
+//let waitingPlayers: WaitingPlayer =[];
 
 // Handle a user connecting
 export const handleConnection = (
