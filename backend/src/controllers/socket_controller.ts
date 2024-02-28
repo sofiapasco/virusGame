@@ -1,6 +1,7 @@
 /**
  * Socket Controller
  */
+
 import Debug from "debug";
 import { Server, Socket } from "socket.io";
 import { ClientToServerEvents, ServerToClientEvents } from "@shared/types/SocketTypes";
@@ -17,6 +18,13 @@ export const handleConnection = (
 	io: Server<ClientToServerEvents, ServerToClientEvents>
 ) => {
 	debug("🙋 A user connected", socket.id);
+
+	// lyssnar till inkommande spelare
+	socket.on("JoinTheGame", (nickname, callback) => {
+		debug (`${nickname} joined the game`);
+
+		callback(true);
+	});
 }
 
 
