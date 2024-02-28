@@ -5,6 +5,8 @@
 import Debug from "debug";
 import { Server, Socket } from "socket.io";
 import { ClientToServerEvents, ServerToClientEvents } from "@shared/types/SocketTypes";
+import { url } from "inspector";
+import prisma from "../prisma";
 
 // Create a new debug instance
 const debug = Debug("backend:socket_controller");
@@ -24,8 +26,13 @@ export const handleConnection = (
 		debug (`${nickname} joined the game`);
 
 		callback(true);
+
+	// (Carolins) När TVÅ spelare är inne i spelrummet, emita positionVirus (just nu gör den det såfort någon joinar)
+	socket.emit("positionVirus");
 	});
 }
+
+
 
 
 
