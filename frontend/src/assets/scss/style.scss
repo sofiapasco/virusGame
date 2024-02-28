@@ -31,7 +31,7 @@
 }
 
 #lobby {
-  border: 2px dotted black;
+  border: 4px dotted black;
   margin-bottom: 20vh;
   padding-top: 5vh;
   padding-bottom: 5vh;
@@ -41,4 +41,11 @@
   width: 100%;
   padding: 10px;
   font-size: 1.2rem;
+}
+
+#players {
+  list-style-type: none;
+  padding-left: 0;
+  color: white;
+  font-size: 4vh;
 }
