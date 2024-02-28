@@ -4,15 +4,19 @@
 
 import Debug from "debug";
 import { Server, Socket } from "socket.io";
-import { ClientToServerEvents, ServerToClientEvents } from "@shared/types/SocketTypes";
-import { url } from "inspector";
+import {
+	ClientToServerEvents,
+	ServerToClientEvents,
+	WaitingPlayer,
+} from "@shared/types/SocketTypes";
+import { waitForDebugger } from "inspector";
 import prisma from "../prisma";
 
 // Create a new debug instance
 const debug = Debug("backend:socket_controller");
 
 // Skapa en array för att spåra väntande spelare
-let waitingPlayers =[];
+//let waitingPlayers: WaitingPlayer =[];
 
 // Handle a user connecting
 export const handleConnection = (
@@ -25,14 +29,22 @@ export const handleConnection = (
 	socket.on("JoinTheGame", (nickname, callback) => {
 		debug (`${nickname} joined the game`);
 
-		callback(true);
+		try {
+			const user = await prisma.user.create({
+				data: {
+					nickname: nickname,
+					scores: [],
+				},
+			});
+
+			debug(`User created with ID: ${user.id}`);
+			callback(true);
+		} catch (error) {
+			debug("Error creating user:", error);
+			callback(false);
+		}
 
 	// (Carolins) När TVÅ spelare är inne i spelrummet, emita positionVirus (just nu gör den det såfort någon joinar)
 	socket.emit("positionVirus");
 	});
-}
-
-
-
-
-
+};

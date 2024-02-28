@@ -14,3 +14,8 @@ export interface ClientToServerEvents {
 }
 
 
+export interface WaitingPlayer {
+	socketId: string;
+	nickname: string;
+  }
+
