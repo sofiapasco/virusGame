@@ -33,6 +33,25 @@ body {
   width: 70vw;
   margin-left: 3vw;
   cursor: grab;
+  position: relative //behövs för att grid ska läggas relativt till gameBoard
+}
+
+.grid-wrapper {
+  position: absolute;
+  top:0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
 }
 
 #scoreboard-title {
