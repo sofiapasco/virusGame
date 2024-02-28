@@ -1,17 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="icon" href="https://fav.farm/😎" />
-	<link rel="stylesheet" href="/src/assets/scss/style.scss">
-	<title>FED23 API-utveckling Realtime Frontend</title>
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="https://fav.farm/😎" />
+    <link rel="stylesheet" href="/src/assets/scss/style.scss" />
+    <title>FED23 API-utveckling Realtime Frontend</title>
+  </head>
 
-<body>
-	<div id="app"></div>
+  <body>
+    <div id="app">
+      <!-- Här är nickname -->
+      <div id="app">
+        <div id="nickname" class="container hide">
+          <form id="nickname-form">
+            <div class="mb-3">
+              <input
+                type="text"
+                id="nickname-input"
+                class="form-control form-control-lg"
+                required
+                placeholder="Write your name"
+              />
+            </div>
 
-	<script type="module" src="/src/main.ts"></script>
-</body>
+            <button type="submit" id="connectBtn" disabled>Move on!</button>
+          </form>
+        </div>
+      </div>
+      <!-- Slut på nickname -->
+      <!-- Lobby start -->
+      <div id="lobby" class="container">
+        <h2>Welcome to the Lobby!</h2>
+        <div id="player-list" class="mb-3">
+          <h3>Connected Players:</h3>
+          <ul id="players">
+            <!-- Spelare läggs till här med JavaScript -->
+          </ul>
+        </div>
+        <button id="start-game" disabled>Start new game</button>
+      </div>
+      <!-- text
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-->
+
+      <!-- Lobby slut -->
+
+      <!-- Spelvy -->
+      <h1 id="game-title">Wack a Virus! 🦠</h1>
+
+      <div id="game-wrapper">
+        <div id="gameBoard" class="hide"></div>
+
+        <div id="scoreboard-wrapper">
+          <h2 id="scoreboard-title">Scoreboard</h2>
+
+          <span id="your-score" class="blue, score"></span>
+          <span class="score">-</span>
+          <span id="opponent-score" class="orange, score"></span>
+
+          <div id="your-name" class="blue">Your name</div>
+          <div id="your-time" class="reaction-time">your time</div>
+
+          <div id="opponent-name" class="orange">Opponent name</div>
+          <div id="opponent-time" class="reaction-time">opponent time</div>
+        </div>
+      </div>
+      <!-- Spelvy slut -->
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
 </html>

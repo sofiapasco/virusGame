@@ -8,11 +8,11 @@ import "./assets/scss/style.scss";
 const SOCKET_HOST = import.meta.env.VITE_SOCKET_HOST;
 
 
-const waitRoomButtonEl = document.querySelector("#waitRoom") as HTMLButtonElement
-const nickNameInput = document.querySelector('nickname') as HTMLInputElement
-const startScreenEl =document.querySelector('#startScreen') as HTMLDListElement
-const waitingScreen =document.querySelector('#waitingScreen') as HTMLDivElement
-const playingRoom = document.querySelector("#playRoom") as HTMLDivElement
+const moveOnwaitRoomButtonEl = document.querySelector("connectBtn") as HTMLButtonElement
+const nickNameInput = document.querySelector('#nickname-input') as HTMLInputElement
+const startScreenEl =document.querySelector('#app') as HTMLDListElement
+const waitingScreen =document.querySelector('#lobby') as HTMLDivElement
+const playingRoom = document.querySelector("#game-wrapper") as HTMLDivElement
 
 // Connect to Socket.IO Server
 console.log("Connecting to Socket.IO Server at:", SOCKET_HOST);
@@ -25,7 +25,7 @@ socket.on("connect", () => {
 	console.log("💥 Connected to the server", SOCKET_HOST);
 	console.log("🔗 Socket ID:", socket.id);
 
-	showStartRoom();
+	showStartRoom(); // visa startrummet
 });
 
 // Show start room 
@@ -65,7 +65,7 @@ socket.io.on("reconnect", () => {
  * När spelaren har skrvit in sitt 'nickname'
  * och klickar in sig för möta en motståndare
  */
-waitRoomButtonEl.addEventListener('click',(e) =>{
+moveOnwaitRoomButtonEl.addEventListener('click',(e) =>{
 	e.preventDefault();
 
 	const trimmedNickname = nickNameInput.value.trim();
