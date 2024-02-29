@@ -2,6 +2,8 @@ import { io, Socket } from "socket.io-client";
 import {
   ClientToServerEvents,
   ServerToClientEvents,
+  WaitingPlayer,
+  MatchFoundMessage
 } from "@shared/types/SocketTypes";
 import "./assets/scss/style.scss";
 
@@ -32,6 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
       socket.emit("JoinTheGame", nickname, (success: boolean) => {
         if (success) {
           console.log("Join was successful", success);
+
           // Hantera logik för att gå vidare från formuläret här...
           // Till exempel, visa ett annat UI-element eller rum
         } else {
@@ -51,6 +54,7 @@ const nickNameInput = document.querySelector(
 const startScreenEl = document.querySelector("#app") as HTMLDListElement;
 const waitingScreen = document.querySelector("#lobby") as HTMLDivElement;
 const playingRoom = document.querySelector("#game-wrapper") as HTMLDivElement;
+const gameBtnEl = document.querySelector("#start-game") as HTMLButtonElement;
 
 // Connect to Socket.IO Server
 console.log("Connecting to Socket.IO Server at:", SOCKET_HOST);
@@ -80,17 +84,31 @@ const showWaitingRoom = (nickname: string) => {
   waitingScreen.classList.remove("hide"); // Väntrummet kommer att synas
   playingRoom.classList.add("hide");
 
-  // Skapa ett nytt listelement för att visa spelarens nickname
-  const playerListItem = document.createElement("li");
-  playerListItem.textContent = nickname;
+//Connect two players
+/*const handleConnectionForGame = (response:GameTimeRequest) =>{
+  console.log("Join was successful?", response);
+  
+  if(response.opponent){
+    console.log("Opponent found:", response.opponent);
 
-  // Lägg till det nya listelementet i listan med spelare
-  const playersList = document.getElementById("players");
-  if (playersList) {
-    playersList.appendChild(playerListItem);
-  } else {
-    console.error("Elementet för spelarlistan kunde inte hittas.");
+    showPlayingRoom();
+  }else {
+    console.log("Waiting for someone to play");
   }
+
+}
+*/
+// Skapa ett nytt listelement för att visa spelarens nickname
+const playerListItem = document.createElement("li");
+playerListItem.textContent = nickname;
+
+// Lägg till det nya listelementet i listan med spelare
+const playersList = document.getElementById("players");
+  if (playersList) {
+  playersList.appendChild(playerListItem);
+} else {
+  console.error("Elementet för spelarlistan kunde inte hittas.");
+}
 };
 
 //show playingroom
@@ -138,3 +156,7 @@ moveOnwaitRoomButtonEl.addEventListener("click", (e) => {
     showWaitingRoom(nickname!);
   });
 });
+
+gameBtnEl.addEventListener("click",(e) =>{
+
+})
