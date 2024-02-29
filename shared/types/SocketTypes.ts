@@ -5,7 +5,7 @@ export interface ServerToClientEvents {
     hello: () => void;
     JoinTheGame: (nickename:string) => void;
     //GameTime:(message:GameTimeMessage) => void;
-
+    positionVirus: () => void;
 }
 
 // Events emitted by the client to the server

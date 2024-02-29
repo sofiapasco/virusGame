@@ -27,7 +27,7 @@ export const handleConnection = (
 
 	// lyssnar till inkommande spelare
 	socket.on("JoinTheGame", async (nickname, callback) => {
-		debug(`${nickname} is trying to join the game`);
+		debug (`${nickname} joined the game`);
 
 		try {
 			const user = await prisma.user.create({
@@ -57,5 +57,8 @@ export const handleConnection = (
 			debug("Error creating user:", error);
 			callback(true);
 		}
+
+	// (Carolins) När TVÅ spelare är inne i spelrummet, emita positionVirus (just nu gör den det såfort någon joinar)
+	socket.emit("positionVirus");
 	});
 };

@@ -51,7 +51,7 @@ const moveOnwaitRoomButtonEl = document.querySelector(
 const nickNameInput = document.querySelector(
   "#nickname-input"
 ) as HTMLInputElement;
-const startScreenEl = document.querySelector("#app") as HTMLDListElement;
+
 const waitingScreen = document.querySelector("#lobby") as HTMLDivElement;
 const playingRoom = document.querySelector("#game-wrapper") as HTMLDivElement;
 const gameBtnEl = document.querySelector("#start-game") as HTMLButtonElement;
@@ -73,15 +73,27 @@ socket.on("connect", () => {
 
 // Show start room
 const showStartRoom = () => {
-  startScreenEl.classList.remove("hide"); // man kommer att se startsidan
-  waitingScreen.classList.add("hide"); // väntrummet kommer attt döljas
+  const nicknameScreen = document.getElementById("nickname");
+  if (nicknameScreen) {
+    nicknameScreen.classList.remove("hide");
+  } else {
+    console.error("Nickname skärmen kunde inte hittas i DOM");
+  }
+  waitingScreen.classList.add("hide");
   playingRoom.classList.add("hide");
 };
 
 // show waitingroom
 const showWaitingRoom = (nickname: string) => {
-  startScreenEl.classList.add("hide");
-  waitingScreen.classList.remove("hide"); // Väntrummet kommer att synas
+  const nicknameScreen = document.getElementById("nickname");
+  if (nicknameScreen) {
+    nicknameScreen.classList.add("hide");
+  }
+
+  // Visa "lobby" genom att ta bort "hide"-klassen
+  waitingScreen.classList.remove("hide");
+
+  // Spelrummet ska fortfarande vara dolt
   playingRoom.classList.add("hide");
 
 //Connect two players
@@ -113,10 +125,21 @@ const playersList = document.getElementById("players");
 
 //show playingroom
 const showPlayingRoom = () => {
-  startScreenEl.classList.add("hide"); // startrummet döljs
-  waitingScreen.classList.add("hide"); // väntrummet kommer attt döljas
+  // "nickname"-skärmen och "lobby" ska vara dolda
+  const nicknameScreen = document.getElementById("nickname");
+  if (nicknameScreen) {
+    nicknameScreen.classList.add("hide");
+  }
+  waitingScreen.classList.add("hide");
+
+  // Visa "game wrapper" genom att ta bort "hide"-klassen
   playingRoom.classList.remove("hide");
 };
+// Sätt upp din anslutningslogik
+socket.on("connect", () => {
+  console.log("Connected to the server", SOCKET_HOST);
+  showStartRoom();
+});
 
 // Listen for when server got tired of us
 socket.on("disconnect", () => {
@@ -160,3 +183,33 @@ moveOnwaitRoomButtonEl.addEventListener("click", (e) => {
 gameBtnEl.addEventListener("click",(e) =>{
 
 })
+/**
+ *  CAROLINS
+ *  Visa ett virus
+ */
+
+// lyssna efter att servern emittar "positionVirus", anropa sedan showVirus()
+socket.on("positionVirus", () => {
+  showVirus();
+});
+
+function getRandomInt(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function showVirus() {
+  const x = getRandomInt(1, 10);
+  const y = getRandomInt(1, 10);
+  const virusImg = document.createElement("img");
+  virusImg.src = "frontend/src/assets/Images/green-virus.png";
+  virusImg.alt = "ugly green virus";
+  virusImg.style.gridColumn = x.toString();
+  virusImg.style.gridColumn = y.toString();
+  // append image to the grid
+  const gameBoard: HTMLElement | null = document.getElementById("gameBoard");
+  if (!gameBoard) {
+    console.error("unable to find gameBoard element");
+  } else {
+    gameBoard.appendChild(virusImg);
+  }
+}
