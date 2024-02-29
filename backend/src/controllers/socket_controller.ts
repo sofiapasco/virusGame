@@ -26,7 +26,7 @@ export const handleConnection = (
 	debug("🙋 A user connected", socket.id);
 
 	// lyssnar till inkommande spelare
-	socket.on("JoinTheGame", (nickname, callback) => {
+	socket.on("JoinTheGame", async (nickname, callback) => {
 		debug (`${nickname} joined the game`);
 
 		try {
