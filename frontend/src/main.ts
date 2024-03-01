@@ -2,12 +2,11 @@ import { io, Socket } from "socket.io-client";
 import {
   ClientToServerEvents,
   ServerToClientEvents,
-  GameTimeMessage
+  GameTimeMessage,
 } from "@shared/types/SocketTypes";
 import "./assets/scss/style.scss";
 
 const SOCKET_HOST = import.meta.env.VITE_SOCKET_HOST;
-
 
 document.addEventListener("DOMContentLoaded", () => {
   const nicknameForm: HTMLFormElement = document.getElementById(
@@ -55,7 +54,6 @@ const nickNameInput = document.querySelector(
 const waitingScreen = document.querySelector("#lobby") as HTMLDivElement;
 const playingRoom = document.querySelector("#game-wrapper") as HTMLDivElement;
 
-
 // Connect to Socket.IO Server
 console.log("Connecting to Socket.IO Server at:", SOCKET_HOST);
 const socket: Socket<ServerToClientEvents, ClientToServerEvents> =
@@ -96,85 +94,83 @@ const showWaitingRoom = (nickname: string) => {
   // Spelrummet ska fortfarande vara dolt
   playingRoom.classList.add("hide");
 
-//Connect two players
-const handleConnectionForGame = (response:GameTimeMessage) =>{
-  console.log("GameTime: Join was successful?", response);
-  
-  if(response.opponent){
-    console.log("Opponent found:", response.opponent);
+  //Connect two players
+  const handleConnectionForGame = (response: GameTimeMessage) => {
+    console.log("GameTime: Join was successful?", response);
 
-    showPlayingRoom();
-  }else {
-    console.log("Waiting for someone to play");
-  }
-}
+    if (response.opponent) {
+      console.log("Opponent found:", response.opponent);
 
-// Lyssna på uppdateringar från servern om lobbyn
-socket.on("UpdateLobby", (players: string[]) => {
-  console.log("Lobby updated with players:", players);
-  updateLobby(players);
-});
+      showPlayingRoom();
+    } else {
+      console.log("Waiting for someone to play");
+    }
+  };
 
-
-// Uppdatera UI för lobbyn med namnen på spelarna
-const updateLobby = (players: string[]) => {
-const lobbyList = document.getElementById("player-list");
-
-if (lobbyList) {
-  lobbyList.innerHTML = ""; // Rensa lobbyn för att undvika dubbletter
-
-  players.forEach(player => {
-      const playerElement = document.createElement("li");
-      playerElement.textContent = player;
-      lobbyList.appendChild(playerElement);
+  // Lyssna på uppdateringar från servern om lobbyn
+  socket.on("UpdateLobby", (players: string[]) => {
+    console.log("Lobby updated with players:", players);
+    updateLobby(players);
   });
 
-  // Kontrollera om det finns tillräckligt med spelare för att starta spelet
-  if (players.length >= 2) {
-      // Om det finns två spelare i lobbyn, starta spelet
-      showPlayingRoom();
-  }
-} else {
-  console.error("Elementet för lobbylistan kunde inte hittas.");
-}
-};
+  // Uppdatera UI för lobbyn med namnen på spelarna
+  const updateLobby = (players: string[]) => {
+    const lobbyList = document.getElementById("player-list");
 
-// Listen to GameTime when to players want to play
-socket.on("GameTime", (message: GameTimeMessage) => {
-  handleConnectionForGame(message);
-});
+    if (lobbyList) {
+      lobbyList.innerHTML = ""; // Rensa lobbyn för att undvika dubbletter
 
-// Skapa ett nytt listelement för att visa spelarens nickname
-const playerListItem = document.createElement("li");
-playerListItem.textContent = nickname;
+      players.forEach((player) => {
+        const playerElement = document.createElement("li");
+        playerElement.textContent = player;
+        lobbyList.appendChild(playerElement);
+      });
 
-// Lägg till det nya listelementet i listan med spelare
-const playersList = document.getElementById("players");
+      // Kontrollera om det finns tillräckligt med spelare för att starta spelet
+      if (players.length >= 2) {
+        // Om det finns två spelare i lobbyn, starta spelet
+        showPlayingRoom();
+      }
+    } else {
+      console.error("Elementet för lobbylistan kunde inte hittas.");
+    }
+  };
+
+  // Listen to GameTime when to players want to play
+  socket.on("GameTime", (message: GameTimeMessage) => {
+    handleConnectionForGame(message);
+  });
+
+  // Skapa ett nytt listelement för att visa spelarens nickname
+  const playerListItem = document.createElement("li");
+  playerListItem.textContent = nickname;
+
+  // Lägg till det nya listelementet i listan med spelare
+  const playersList = document.getElementById("players");
   if (playersList) {
-  playersList.appendChild(playerListItem);
-} else {
-  console.error("Elementet för spelarlistan kunde inte hittas.");
-}
-
-
-//show playingroom
-const showPlayingRoom = () => {
-  // "nickname"-skärmen och "lobby" ska vara dolda
-  const nicknameScreen = document.getElementById("nickname");
-  if (nicknameScreen) {
-    nicknameScreen.classList.add("hide");
+    playersList.appendChild(playerListItem);
+  } else {
+    console.error("Elementet för spelarlistan kunde inte hittas.");
   }
-  waitingScreen.classList.add("hide");
 
-  // Visa "game wrapper" genom att ta bort "hide"-klassen
-  playingRoom.classList.remove("hide");
+  //show playingroom
+  const showPlayingRoom = () => {
+    // "nickname"-skärmen och "lobby" ska vara dolda
+    const nicknameScreen = document.getElementById("nickname");
+    if (nicknameScreen) {
+      nicknameScreen.classList.add("hide");
+    }
+    waitingScreen.classList.add("hide");
+
+    // Visa "game wrapper" genom att ta bort "hide"-klassen
+    playingRoom.classList.remove("hide");
+  };
+  // Sätt upp din anslutningslogik
+  socket.on("connect", () => {
+    console.log("Connected to the server", SOCKET_HOST);
+    showStartRoom();
+  });
 };
-// Sätt upp din anslutningslogik
-socket.on("connect", () => {
-  console.log("Connected to the server", SOCKET_HOST);
-  showStartRoom();
-});
-}
 
 // Listen for when server got tired of us
 socket.on("disconnect", () => {
@@ -215,7 +211,6 @@ moveOnwaitRoomButtonEl.addEventListener("click", (e) => {
   });
 });
 
-
 /**
  *  CAROLINS
  *  Visa ett virus
@@ -247,13 +242,13 @@ function showVirus() {
   }
 }
 
-//Listen to a new round 
-socket.on("newRound",(round:number)=>{
+//Listen to a new round
+socket.on("newRound", (round: number) => {
   const roundCounter = document.getElementById("round") as HTMLTitleElement;
   roundCounter.textContent = `Runda: ${round}`;
-})
+});
 
-
+/*
 
 //Carros klocka
 
@@ -302,4 +297,4 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-
+*/
