@@ -2,10 +2,6 @@
   background-color: $bg-color;
 }
 
-#hide {
-  display: none !important;
-}
-
 body {
   margin: 0;
   background-color: $bg-color;
@@ -92,7 +88,6 @@ body {
 }
 
 .grid-wrapper {
-  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
@@ -100,7 +95,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  opacity: 0;
+  opacity: 1;
 }
 
 .grid {

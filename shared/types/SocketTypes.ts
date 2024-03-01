@@ -6,13 +6,14 @@ export interface ServerToClientEvents {
     JoinTheGame: (nickename:string) => void;
     //GameTime:(message:GameTimeMessage) => void;
     positionVirus: () => void;
+    clickResponseTime: (elapsedTime:number) => void;
 }
 
 // Events emitted by the client to the server
 export interface ClientToServerEvents {
     JoinTheGame: (nickname:string, callback:(success:boolean) => void) => void;
    // GameTimeRequest:(nickname:string ,opponent:string, callback: ())
-
+    virusClick: (nickname:string) => void;
 }
 
 export interface WaitingPlayer {
