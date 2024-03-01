@@ -172,6 +172,21 @@ const showWaitingRoom = (nickname: string) => {
   });
 };
 
+const addOtherPlayerToLobby = (nickname: string) => {
+  const playerList = document.getElementById("players") as HTMLUListElement;
+  if (playerList) {
+    const otherPlayerItem = document.createElement("li");
+    otherPlayerItem.textContent = nickname;
+    playerList.appendChild(otherPlayerItem);
+  } else {
+    console.error("Elementet för spelarlistan kunde inte hittas.");
+  }
+};
+
+socket.on("otherPlayerJoined", (nickname) => {
+  addOtherPlayerToLobby(nickname);
+});
+
 // Listen for when server got tired of us
 socket.on("disconnect", () => {
   console.log("💀 Disconnected from the server:", SOCKET_HOST);
@@ -248,8 +263,6 @@ socket.on("newRound", (round: number) => {
   roundCounter.textContent = `Round: ${round}`;
 });
 
-/*
-
 //Carros klocka
 
 // Funktion för att starta en timer
@@ -296,5 +309,3 @@ window.addEventListener("DOMContentLoaded", () => {
     startTimer(opponentTimeElement);
   }
 });
-
-*/
