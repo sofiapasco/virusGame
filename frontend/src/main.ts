@@ -263,6 +263,8 @@ socket.on("newRound", (round: number) => {
   roundCounter.textContent = `Runda: ${round}`;
 });
 
+/*
+
 //Carros klocka
 
 // Funktion för att starta en timer
@@ -309,3 +311,4 @@ window.addEventListener("DOMContentLoaded", () => {
     startTimer(opponentTimeElement);
   }
 });
+*/

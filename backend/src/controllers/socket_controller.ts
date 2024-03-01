@@ -30,6 +30,12 @@ export const handleConnection = (
 ) => {
 	debug("🙋 A user connected", socket.id);
 
+	// När alla användare har anslutit och spelet har startat, skicka "newRound" händelsen till klienten
+	socket.emit("newRound", roundCount + 1);
+
+	// Nollställ arrayen av väntande spelare
+	waitingPlayers = [];
+
 	// Lyssna efter anslutning till "JoinTheGame"-händelsen
 	socket.on("JoinTheGame", (nickname, callback) => {
 		debug(`${nickname} joined the game`);
