@@ -244,7 +244,7 @@ function showVirus() {
   const x = getRandomInt(1, 10);
   const y = getRandomInt(1, 10);
   const virusImg = document.createElement("img");
-  virusImg.src = "frontend/src/assets/Images/green-virus.png";
+  virusImg.src = "/src/assets/Images/green-virus.png";
   virusImg.alt = "ugly green virus";
   virusImg.style.gridColumn = x.toString();
   virusImg.style.gridColumn = y.toString();
@@ -262,6 +262,8 @@ socket.on("newRound", (round: number) => {
   const roundCounter = document.getElementById("round") as HTMLTitleElement;
   roundCounter.textContent = `Round: ${round}`;
 });
+
+/*
 
 //Carros klocka
 
@@ -309,3 +311,9 @@ window.addEventListener("DOMContentLoaded", () => {
     startTimer(opponentTimeElement);
   }
 });
+*/
+
+socket.on("winnerOfRound", (winner) => {
+  //vinnaren skickas hit - kod här för att öka rätt poängsiffra
+  console.log("Vinnaren av rundan är: ", winner)
+})

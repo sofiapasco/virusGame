@@ -9,6 +9,7 @@ export interface ServerToClientEvents {
   positionVirus: () => void;
   clickResponseTime: (elapsedTime: number) => void;
   newRound: (round: number) => void;
+    winnerOfRound: (winner: string) => void; 
 }
 
 // Events emitted by the client to the server
