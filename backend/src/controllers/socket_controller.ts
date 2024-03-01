@@ -42,25 +42,51 @@ export const handleConnection = (
 
 	let startTime: number;
 	let clicked: boolean = false
+	let player1Time: { reactionTime: number, playerName: string } | null = null;
+	let player2Time: { reactionTime: number, playerName: string } | null = null;
 
-  const startTimer = () => {
+    const startTimer = () => {  //startTimer() ska anropas med samma delay som viruset dyker upp
 	startTime = Date.now();
 
-	const handleVirusClick = () => {
-		if (!clicked) { // = inte false, alltså true
-			clicked = true;  //spelaren har klickat
-			const reactionTime = Date.now() - startTime;
-			io.emit("clickResponseTime", reactionTime)
-		}
-	};
 		// lyssna efter klick på virus
-		socket.on("virusClick", handleVirusClick);
+		socket.on("virusClick", (playerName: string) => {
+			if (!clicked) { // = inte false, alltså true
+				clicked = true;  //spelaren har klickat
+				const reactionTime = Date.now() - startTime;
+				const playerTime = { reactionTime: reactionTime, playerName: playerName };
+
+				if(!player1Time) {
+					player1Time = playerTime;
+				} else if (!player2Time) {
+					player2Time = playerTime;
+				}
+				io.emit("clickResponseTime", reactionTime)
+				clicked = false; // återställer click
+			}
+		});
 
 		// om ingen klick gjorts på 30 sek
-		setTimeout(() => {
-			if (!clicked) {
-				clicked = true;
-				io.emit("clickResponseTime", 30000);
-			}
-		}, 30000); //när 30 sek gått skickas koden ovan med 30 sek som tid
+		const handleNoclick = () => {
+				if (!clicked) {
+					clicked = true;
+					io.emit("clickResponseTime", 30000);
+					clicked = false; // återställer click
+				}
+		};
+
+		// När tiden skickats, kör compareReactionTime()
+		compareReactionTime();
  };
+
+  // Carolin - Jämför tid och utse rundans vinnare
+ const compareReactionTime = () => {
+    if (player1Time && player2Time) {
+        if (player1Time.reactionTime < player2Time.reactionTime) {
+            io.emit("winnerOfRound", player1Time.playerName);
+        } else if (player2Time.reactionTime < player1Time.reactionTime) {
+            io.emit("winnerOfRound", player2Time.playerName);
+        } else {
+            io.emit("winnerOfRound", "It's a tie!");
+        }
+    }
+};

@@ -270,3 +270,8 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 */
+
+socket.on("winnerOfRound", (winner) => {
+  //vinnaren skickas hit - kod här för att öka rätt poängsiffra
+  console.log("Vinnaren av rundan är: ", winner)
+})
