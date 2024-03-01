@@ -29,15 +29,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (nickname) {
       // Använd Socket.IO för att skicka användarnamnet till servern
-      socket.emit("JoinTheGame", nickname, (success: boolean) => {
-        if (success) {
-          console.log("Join was successful", success);
-          // Hantera logik för att gå vidare från formuläret här...
-          // Till exempel, visa ett annat UI-element eller rum
-        } else {
-          alert("You cannot play now, try again later.");
-        }
-      });
+      //socket.emit("JoinTheGame", nickname, (success: boolean) => {
+      //if (success) {
+      // console.log("Join was successful", success);
+      // Hantera logik för att gå vidare från formuläret här...
+      // Till exempel, visa ett annat UI-element eller rum
+      // } else {
+      // alert("You cannot play now, try again later.");
+      // }
+      //});
     }
   });
 });
@@ -79,6 +79,8 @@ const showStartRoom = () => {
   playingRoom.classList.add("hide");
 };
 
+// kod till lobby
+
 // show waitingroom
 const showWaitingRoom = (nickname: string) => {
   const nicknameScreen = document.getElementById("nickname");
@@ -92,29 +94,29 @@ const showWaitingRoom = (nickname: string) => {
   // Spelrummet ska fortfarande vara dolt
   playingRoom.classList.add("hide");
 
-  // Skapa ett nytt listelement för att visa spelarens nickname
-  const playerListItem = document.createElement("li");
-  playerListItem.textContent = nickname;
-
-  // Lägg till det nya listelementet i listan med spelare
+  // Hämta spelarlistan från DOM
   const playersList = document.getElementById("players");
   if (playersList) {
+    // Skapa ett nytt listelement för att visa spelarens nickname
+    const playerListItem = document.createElement("li");
+    playerListItem.textContent = nickname;
+
+    // Lägg till det nya listelementet i listan med spelare
     playersList.appendChild(playerListItem);
   } else {
     console.error("Elementet för spelarlistan kunde inte hittas.");
   }
 };
-
 //show playingroom
 const showPlayingRoom = () => {
-  // "nickname"-skärmen och "lobby" ska vara dolda
+  //"nickname"-skärmen och "lobby" ska vara dolda
   const nicknameScreen = document.getElementById("nickname");
   if (nicknameScreen) {
     nicknameScreen.classList.add("hide");
   }
   waitingScreen.classList.add("hide");
 
-  // Visa "game wrapper" genom att ta bort "hide"-klassen
+  //Visa "game wrapper" genom att ta bort "hide"-klassen
   playingRoom.classList.remove("hide");
 };
 // Sätt upp din anslutningslogik
@@ -183,7 +185,7 @@ function showVirus() {
   virusImg.src = "frontend/src/assets/Images/green-virus.png";
   virusImg.alt = "ugly green virus";
   virusImg.style.gridColumn = x.toString();
-  virusImg.style.gridColumn = y.toString();
+  virusImg.style.gridRow = y.toString();
   // append image to the grid
   const gameBoard: HTMLElement | null = document.getElementById("gameBoard");
   if (!gameBoard) {
@@ -192,3 +194,52 @@ function showVirus() {
     gameBoard.appendChild(virusImg);
   }
 }
+
+//Carros klocka
+/*
+// Funktion för att starta en timer
+function startTimer(timerElement: HTMLElement): number {
+  let seconds: number = 0;
+  let minutes: number = 0;
+  let hours: number = 0;
+
+  // Uppdatera elementet varje sekund
+  return window.setInterval(() => {
+    seconds++;
+    if (seconds >= 60) {
+      seconds = 0;
+      minutes++;
+      if (minutes >= 60) {
+        minutes = 0;
+        hours++;
+      }
+    }
+
+    // Format tidsträngen med ledande nollor
+    const hoursFormatted: string = hours < 10 ? "0" + hours : hours.toString();
+    const minutesFormatted: string =
+      minutes < 10 ? "0" + minutes : minutes.toString();
+    const secondsFormatted: string =
+      seconds < 10 ? "0" + seconds : seconds.toString();
+
+    // Uppdatera tiden i DOM
+    timerElement.textContent = `${hoursFormatted}:${minutesFormatted}:${secondsFormatted}`;
+  }, 1000);
+}
+
+// Starta klockorna när sidan laddas
+window.addEventListener("DOMContentLoaded", () => {
+  const yourTimeElement: HTMLElement | null =
+    document.getElementById("your-time");
+  const opponentTimeElement: HTMLElement | null =
+    document.getElementById("opponent-time");
+
+  if (yourTimeElement && opponentTimeElement) {
+    // Starta din timer
+    startTimer(yourTimeElement);
+    // Starta motståndarens timer
+    startTimer(opponentTimeElement);
+  }
+});
+
+*/
