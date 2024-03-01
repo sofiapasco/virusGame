@@ -28,10 +28,9 @@ export const handleConnection = (
 	io: Server<ClientToServerEvents, ServerToClientEvents>,
 ) => {
 	debug("🙋 A user connected", socket.id);
-
 	// lyssnar till inkommande spelare
-	socket.on("JoinTheGame", async (nickname) => {
-		debug(`${nickname} joined the game`);
+	socket.on("JoinTheGame", async (nickname, callback) => {
+		debug (`${nickname} joined the game`);
 
 		try {
 			const user = await prisma.user.create({
@@ -44,15 +43,21 @@ export const handleConnection = (
 			debug(`User created with ID: ${user.id}`);
 
 			//Add the player in the waitingarray
-			waitingPlayers.push({socketId:socket.id, nickname})
+			waitingPlayers.push({socketId:socket.id, nickname});
+			debug("waitingPlayers: %o", waitingPlayers);
 
 			//Check if there is one or two players
 			if(waitingPlayers.length >= 2){
-				const [player1, player2] = waitingPlayers.splice(0,2);
+				const [player1, player2] = waitingPlayers;
 
 				//Send the players to the playroom
-				//io.to(player1.socketId).emit("GameTime", { opponent: player2.nickname });
-				//io.to(player2.socketId).emit("GameTime", { opponent: player1.nickname });
+				io.to(player1.socketId).emit("GameTime", { opponent: player2.nickname });
+				io.to(player2.socketId).emit("GameTime", { opponent: player1.nickname });
+
+				io.emit("UpdateLobby", waitingPlayers.map(player => player.nickname));
+
+				waitingPlayers = [];
+
 			}
 
 			callback(true);
