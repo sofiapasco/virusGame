@@ -244,7 +244,7 @@ function showVirus() {
   const x = getRandomInt(1, 10);
   const y = getRandomInt(1, 10);
   const virusImg = document.createElement("img");
-  virusImg.src = "frontend/src/assets/Images/green-virus.png";
+  virusImg.src = "/src/assets/Images/green-virus.png";
   virusImg.alt = "ugly green virus";
   virusImg.style.gridColumn = x.toString();
   virusImg.style.gridColumn = y.toString();
