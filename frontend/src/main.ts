@@ -7,6 +7,8 @@ import "./assets/scss/style.scss";
 
 const SOCKET_HOST = import.meta.env.VITE_SOCKET_HOST;
 
+//Nickname-kod-input för att komma till Lobby
+
 document.addEventListener("DOMContentLoaded", () => {
   const nicknameForm: HTMLFormElement = document.getElementById(
     "nickname-form"
@@ -17,27 +19,52 @@ document.addEventListener("DOMContentLoaded", () => {
   const connectBtn: HTMLButtonElement = document.getElementById(
     "connectBtn"
   ) as HTMLButtonElement;
+  const lobbyContainer: HTMLElement = document.getElementById(
+    "lobby"
+  ) as HTMLElement;
 
-  // Funktion för att aktivera knappen när inputfältet inte är tomt
+  // Aktivera knappen när ett giltigt nickname anges
   nicknameInput.addEventListener("input", () => {
     connectBtn.disabled = nicknameInput.value.trim() === "";
   });
 
-  nicknameForm.addEventListener("submit", (e) => {
+  // Lyssna på klickhändelse för connectBtn
+  connectBtn.addEventListener("click", (e) => {
     e.preventDefault();
+
+    lobbyContainer.classList.remove("hide");
+
     const nickname: string = nicknameInput.value.trim();
 
     if (nickname) {
-      // Använd Socket.IO för att skicka användarnamnet till servern
-      //socket.emit("JoinTheGame", nickname, (success: boolean) => {
-      //if (success) {
-      // console.log("Join was successful", success);
-      // Hantera logik för att gå vidare från formuläret här...
-      // Till exempel, visa ett annat UI-element eller rum
-      // } else {
-      // alert("You cannot play now, try again later.");
-      // }
-      //});
+      // Visa det angivna nicknamnet i lobbyn
+      const playerList = document.getElementById("players") as HTMLUListElement;
+
+      const li = document.createElement("li");
+      li.textContent = nickname;
+
+      playerList.appendChild(li);
+      nicknameInput.value = "";
+    }
+  });
+
+  // Lyssna på formulärhändelse och hantera inlämning
+  nicknameForm.addEventListener("submit", (e) => {
+    e.preventDefault(); // Förhindra standardbeteendet för formuläret
+
+    const nickname: string = nicknameInput.value.trim(); // Hämta värdet från input-fältet
+
+    if (nickname) {
+      // Visa det angivna nicknamnet i lobbyn
+      const playerList = document.getElementById("players") as HTMLUListElement;
+
+      const li = document.createElement("li");
+      li.textContent = nickname;
+
+      playerList.appendChild(li);
+
+      // Rensa input-fältet
+      nicknameInput.value = "";
     }
   });
 });
