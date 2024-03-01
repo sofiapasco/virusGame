@@ -84,9 +84,9 @@ export const handleConnection = (
  //funktion föör att starta en ny runda
  const startNewRound = () => {
     if (roundCount < totalRounds) {
-        const delaySeconds = 5; // Fördröjning för nästa runda
+        const delaySeconds = 1; // Fördröjning för nästa runda
         setTimeout(() => {
-            // Skicka händelsen till klienten 
+            // Skicka händelsen till klienten
             io.emit("newRound", roundCount + 1);
         }, delaySeconds * 1000);
     }
