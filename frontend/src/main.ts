@@ -8,6 +8,7 @@ import "./assets/scss/style.scss";
 
 const SOCKET_HOST = import.meta.env.VITE_SOCKET_HOST;
 
+
 document.addEventListener("DOMContentLoaded", () => {
   const nicknameForm: HTMLFormElement = document.getElementById(
     "nickname-form"
@@ -246,18 +247,11 @@ function showVirus() {
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
+//Listen to a new round 
+socket.on("newRound",(round:number)=>{
+  const roundCounter = document.getElementById("round") as HTMLTitleElement;
+  roundCounter.textContent = `Runda: ${round}`;
+})
 
 
 

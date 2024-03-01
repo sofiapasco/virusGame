@@ -8,6 +8,7 @@ export interface ServerToClientEvents {
     UpdateLobby:(playerNames:string[])=>void;
     positionVirus: () => void;
     clickResponseTime: (elapsedTime:number) => void;
+    newRound: (round: number) => void;
 }
 
 // Events emitted by the client to the server

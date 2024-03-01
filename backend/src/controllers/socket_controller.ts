@@ -12,6 +12,7 @@ import {
 import { waitForDebugger } from "inspector";
 import prisma from "../prisma";
 
+
 // Create a new debug instance
 const debug = Debug("backend:socket_controller");
 
@@ -22,12 +23,18 @@ let socket: Socket<ClientToServerEvents, ServerToClientEvents>;
 // Skapa en array för att spåra väntande spelare
 let waitingPlayers: WaitingPlayer []=[];
 
+//antal Rounds
+let roundCount = 0;
+const totalRounds = 10;
+
 // Handle a user connecting
 export const handleConnection = (
 	socket: Socket<ClientToServerEvents, ServerToClientEvents>,
 	io: Server<ClientToServerEvents, ServerToClientEvents>,
 ) => {
 	debug("🙋 A user connected", socket.id);
+
+
 	// lyssnar till inkommande spelare
 	socket.on("JoinTheGame", async (nickname, callback) => {
 		debug (`${nickname} joined the game`);
@@ -49,12 +56,15 @@ export const handleConnection = (
 			//Check if there is one or two players
 			if(waitingPlayers.length >= 2){
 				const [player1, player2] = waitingPlayers;
+				debug("rouncounting",roundCount)
 
 				//Send the players to the playroom
 				io.to(player1.socketId).emit("GameTime", { opponent: player2.nickname });
 				io.to(player2.socketId).emit("GameTime", { opponent: player1.nickname });
 
 				io.emit("UpdateLobby", waitingPlayers.map(player => player.nickname));
+
+				startNewRound();
 
 				waitingPlayers = [];
 
@@ -70,6 +80,17 @@ export const handleConnection = (
 	// (Carolins) När TVÅ spelare är inne i spelrummet, emita positionVirus (just nu gör den det såfort någon joinar)
 	socket.emit("positionVirus");
 	});
+
+ //funktion föör att starta en ny runda
+ const startNewRound = () => {
+    if (roundCount < totalRounds) {
+        const delaySeconds = 5; // Fördröjning för nästa runda
+        setTimeout(() => {
+            // Skicka händelsen till klienten 
+            io.emit("newRound", roundCount + 1);
+        }, delaySeconds * 1000);
+    }
+};
 };
 
 // Carolins - Mäta spelarens reaktionstid vid ett klick.
@@ -98,3 +119,5 @@ export const handleConnection = (
 			}
 		}, 30000); //när 30 sek gått skickas koden ovan med 30 sek som tid
  };
+
+
