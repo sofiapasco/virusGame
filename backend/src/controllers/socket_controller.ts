@@ -76,25 +76,33 @@ export const handleConnection = (
 				clicked = false; // återställer click
 			}
 		});
-		const handleVirusClick = () => {
-			if (!clicked) {
-				clicked = true; // Spelaren har klickat
-				const reactionTime = Date.now() - startTime;
-				io.emit("clickResponseTime", reactionTime);
-			}
-		};
-		// Lyssna efter klick på virus
-		socket.on("virusClick", handleVirusClick);
 
-		// Om ingen klick gjorts på 30 sekunder
-		setTimeout(() => {
+		 // om ingen klick gjorts på 30 sek
+		 const handleNoclick = () => {
 			if (!clicked) {
 				clicked = true;
 				io.emit("clickResponseTime", 30000);
+				clicked = false; // återställer click
 			}
-		}, 30000); // När 30 sekunder gått skickas koden ovan med 30 sekunder som tid
 	};
+
+	// När tiden skickats, kör compareReactionTime()
+	compareReactionTime();
 };
+
+// Carolin - Jämför tid och utse rundans vinnare
+const compareReactionTime = () => {
+if (player1Time && player2Time) {
+	if (player1Time.reactionTime < player2Time.reactionTime) {
+		io.emit("winnerOfRound", player1Time.playerName);
+	} else if (player2Time.reactionTime < player1Time.reactionTime) {
+		io.emit("winnerOfRound", player2Time.playerName);
+	} else {
+		io.emit("winnerOfRound", "It's a tie!");
+	}
+}
+};
+
 
 // Funktion för att skapa användarna i databasen och starta spelet
 const startGame = async () => {
@@ -116,4 +124,5 @@ const startGame = async () => {
 	} catch (error) {
 		debug("Error creating user:", error);
 	}
+}
 };
