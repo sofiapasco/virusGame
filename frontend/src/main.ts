@@ -246,6 +246,7 @@ function showVirus() {
   const virusImg = document.createElement("img");
   virusImg.src = "/src/assets/Images/green-virus.png";
   virusImg.alt = "ugly green virus";
+  virusImg.setAttribute("id", "virusImage");
   virusImg.style.gridColumn = x.toString();
   virusImg.style.gridColumn = y.toString();
   // append image to the grid
