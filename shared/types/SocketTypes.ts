@@ -6,6 +6,7 @@ export interface ServerToClientEvents {
     JoinTheGame: (nickename:string) => void;
     positionVirus: () => void;
     clickResponseTime: (elapsedTime:number) => void;
+    winnerOfRound: (winner: string) => void; 
 }
 
 // Events emitted by the client to the server
