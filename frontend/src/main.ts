@@ -245,7 +245,7 @@ function showVirus() {
 //Listen to a new round
 socket.on("newRound", (round: number) => {
   const roundCounter = document.getElementById("round") as HTMLTitleElement;
-  roundCounter.textContent = `Runda: ${round}`;
+  roundCounter.textContent = `Round: ${round}`;
 });
 
 /*
