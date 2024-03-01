@@ -12,3 +12,8 @@ model User {
   nickname String
   scores   Int[]
 }
+
+model Room {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name  String
+}

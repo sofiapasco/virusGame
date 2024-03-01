@@ -2,12 +2,11 @@ import { io, Socket } from "socket.io-client";
 import {
   ClientToServerEvents,
   ServerToClientEvents,
+  GameTimeMessage,
 } from "@shared/types/SocketTypes";
 import "./assets/scss/style.scss";
 
 const SOCKET_HOST = import.meta.env.VITE_SOCKET_HOST;
-
-//Nickname-kod-input för att komma till Lobby
 
 document.addEventListener("DOMContentLoaded", () => {
   const nicknameForm: HTMLFormElement = document.getElementById(
@@ -19,52 +18,28 @@ document.addEventListener("DOMContentLoaded", () => {
   const connectBtn: HTMLButtonElement = document.getElementById(
     "connectBtn"
   ) as HTMLButtonElement;
-  const lobbyContainer: HTMLElement = document.getElementById(
-    "lobby"
-  ) as HTMLElement;
 
-  // Aktivera knappen när ett giltigt nickname anges
+  // Funktion för att aktivera knappen när inputfältet inte är tomt
   nicknameInput.addEventListener("input", () => {
     connectBtn.disabled = nicknameInput.value.trim() === "";
   });
 
-  // Lyssna på klickhändelse för connectBtn
-  connectBtn.addEventListener("click", (e) => {
+  nicknameForm.addEventListener("submit", (e) => {
     e.preventDefault();
-
-    lobbyContainer.classList.remove("hide");
-
     const nickname: string = nicknameInput.value.trim();
 
     if (nickname) {
-      // Visa det angivna nicknamnet i lobbyn
-      const playerList = document.getElementById("players") as HTMLUListElement;
+      // Använd Socket.IO för att skicka användarnamnet till servern
+      socket.emit("JoinTheGame", nickname, (success: boolean) => {
+        if (success) {
+          console.log("Join was successful", success);
 
-      const li = document.createElement("li");
-      li.textContent = nickname;
-
-      playerList.appendChild(li);
-      nicknameInput.value = "";
-    }
-  });
-
-  // Lyssna på formulärhändelse och hantera inlämning
-  nicknameForm.addEventListener("submit", (e) => {
-    e.preventDefault(); // Förhindra standardbeteendet för formuläret
-
-    const nickname: string = nicknameInput.value.trim(); // Hämta värdet från input-fältet
-
-    if (nickname) {
-      // Visa det angivna nicknamnet i lobbyn
-      const playerList = document.getElementById("players") as HTMLUListElement;
-
-      const li = document.createElement("li");
-      li.textContent = nickname;
-
-      playerList.appendChild(li);
-
-      // Rensa input-fältet
-      nicknameInput.value = "";
+          // Hantera logik för att gå vidare från formuläret här...
+          // Till exempel, visa ett annat UI-element eller rum
+        } else {
+          alert("You cannot play now, try again later.");
+        }
+      });
     }
   });
 });
@@ -106,8 +81,6 @@ const showStartRoom = () => {
   playingRoom.classList.add("hide");
 };
 
-// kod till lobby
-
 // show waitingroom
 const showWaitingRoom = (nickname: string) => {
   const nicknameScreen = document.getElementById("nickname");
@@ -121,35 +94,97 @@ const showWaitingRoom = (nickname: string) => {
   // Spelrummet ska fortfarande vara dolt
   playingRoom.classList.add("hide");
 
-  // Hämta spelarlistan från DOM
+  //Connect two players
+  const handleConnectionForGame = (response: GameTimeMessage) => {
+    console.log("GameTime: Join was successful?", response);
+
+    if (response.opponent) {
+      console.log("Opponent found:", response.opponent);
+
+      showPlayingRoom();
+    } else {
+      console.log("Waiting for someone to play");
+    }
+  };
+
+  // Lyssna på uppdateringar från servern om lobbyn
+  socket.on("UpdateLobby", (players: string[]) => {
+    console.log("Lobby updated with players:", players);
+    updateLobby(players);
+  });
+
+  // Uppdatera UI för lobbyn med namnen på spelarna
+  const updateLobby = (players: string[]) => {
+    const lobbyList = document.getElementById("player-list");
+
+    if (lobbyList) {
+      lobbyList.innerHTML = ""; // Rensa lobbyn för att undvika dubbletter
+
+      players.forEach((player) => {
+        const playerElement = document.createElement("li");
+        playerElement.textContent = player;
+        lobbyList.appendChild(playerElement);
+      });
+
+      // Kontrollera om det finns tillräckligt med spelare för att starta spelet
+      if (players.length >= 2) {
+        // Om det finns två spelare i lobbyn, starta spelet
+        showPlayingRoom();
+      }
+    } else {
+      console.error("Elementet för lobbylistan kunde inte hittas.");
+    }
+  };
+
+  // Listen to GameTime when to players want to play
+  socket.on("GameTime", (message: GameTimeMessage) => {
+    handleConnectionForGame(message);
+  });
+
+  // Skapa ett nytt listelement för att visa spelarens nickname
+  const playerListItem = document.createElement("li");
+  playerListItem.textContent = nickname;
+
+  // Lägg till det nya listelementet i listan med spelare
   const playersList = document.getElementById("players");
   if (playersList) {
-    // Skapa ett nytt listelement för att visa spelarens nickname
-    const playerListItem = document.createElement("li");
-    playerListItem.textContent = nickname;
-
-    // Lägg till det nya listelementet i listan med spelare
     playersList.appendChild(playerListItem);
   } else {
     console.error("Elementet för spelarlistan kunde inte hittas.");
   }
-};
-//show playingroom
-const showPlayingRoom = () => {
-  //"nickname"-skärmen och "lobby" ska vara dolda
-  const nicknameScreen = document.getElementById("nickname");
-  if (nicknameScreen) {
-    nicknameScreen.classList.add("hide");
-  }
-  waitingScreen.classList.add("hide");
 
-  //Visa "game wrapper" genom att ta bort "hide"-klassen
-  playingRoom.classList.remove("hide");
+  //show playingroom
+  const showPlayingRoom = () => {
+    // "nickname"-skärmen och "lobby" ska vara dolda
+    const nicknameScreen = document.getElementById("nickname");
+    if (nicknameScreen) {
+      nicknameScreen.classList.add("hide");
+    }
+    waitingScreen.classList.add("hide");
+
+    // Visa "game wrapper" genom att ta bort "hide"-klassen
+    playingRoom.classList.remove("hide");
+  };
+  // Sätt upp din anslutningslogik
+  socket.on("connect", () => {
+    console.log("Connected to the server", SOCKET_HOST);
+    showStartRoom();
+  });
 };
-// Sätt upp din anslutningslogik
-socket.on("connect", () => {
-  console.log("Connected to the server", SOCKET_HOST);
-  showStartRoom();
+
+const addOtherPlayerToLobby = (nickname: string) => {
+  const playerList = document.getElementById("players") as HTMLUListElement;
+  if (playerList) {
+    const otherPlayerItem = document.createElement("li");
+    otherPlayerItem.textContent = nickname;
+    playerList.appendChild(otherPlayerItem);
+  } else {
+    console.error("Elementet för spelarlistan kunde inte hittas.");
+  }
+};
+
+socket.on("otherPlayerJoined", (nickname) => {
+  addOtherPlayerToLobby(nickname);
 });
 
 // Listen for when server got tired of us
@@ -180,7 +215,7 @@ moveOnwaitRoomButtonEl.addEventListener("click", (e) => {
 
   //Ansluter till serven
   socket.emit("JoinTheGame", nickname, (success) => {
-    console.log("Join was successful", success);
+    console.log("JoinTheGame: Join was successful", success);
 
     if (!success) {
       alert("You can not play now, try again later");
@@ -212,7 +247,7 @@ function showVirus() {
   virusImg.src = "frontend/src/assets/Images/green-virus.png";
   virusImg.alt = "ugly green virus";
   virusImg.style.gridColumn = x.toString();
-  virusImg.style.gridRow = y.toString();
+  virusImg.style.gridColumn = y.toString();
   // append image to the grid
   const gameBoard: HTMLElement | null = document.getElementById("gameBoard");
   if (!gameBoard) {
@@ -222,8 +257,16 @@ function showVirus() {
   }
 }
 
-//Carros klocka
+//Listen to a new round
+socket.on("newRound", (round: number) => {
+  const roundCounter = document.getElementById("round") as HTMLTitleElement;
+  roundCounter.textContent = `Runda: ${round}`;
+});
+
 /*
+
+//Carros klocka
+
 // Funktion för att starta en timer
 function startTimer(timerElement: HTMLElement): number {
   let seconds: number = 0;
@@ -268,7 +311,6 @@ window.addEventListener("DOMContentLoaded", () => {
     startTimer(opponentTimeElement);
   }
 });
-
 */
 
 socket.on("winnerOfRound", (winner) => {
