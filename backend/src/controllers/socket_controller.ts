@@ -30,8 +30,7 @@ export const handleConnection = (
 ) => {
 	debug("🙋 A user connected", socket.id);
 
-	// När alla användare har anslutit och spelet har startat, skicka "newRound" händelsen till klienten
-	socket.emit("newRound", roundCount + 1);
+
 
 	// Nollställ arrayen av väntande spelare
 	waitingPlayers = [];
@@ -46,6 +45,9 @@ export const handleConnection = (
 
 		// Emit the event to notify other players in the lobby
 		socket.broadcast.emit("otherPlayerJoined", nickname);
+
+		// När alla användare har anslutit och spelet har startat, skicka "newRound" händelsen till klienten
+		socket.emit("newRound", roundCount + 1);
 
 		callback(true);
 	});

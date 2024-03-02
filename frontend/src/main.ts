@@ -263,8 +263,8 @@ socket.on("newRound", (round: number) => {
   roundCounter.textContent = `Round: ${round}`;
 });
 
-/*
 
+/*
 //Carros klocka
 
 // Funktion för att starta en timer
@@ -311,8 +311,8 @@ window.addEventListener("DOMContentLoaded", () => {
     startTimer(opponentTimeElement);
   }
 });
-*/
 
+*/
 socket.on("winnerOfRound", (winner) => {
   //vinnaren skickas hit - kod här för att öka rätt poängsiffra
   console.log("Vinnaren av rundan är: ", winner)
