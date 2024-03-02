@@ -9,13 +9,15 @@ export interface ServerToClientEvents {
   positionVirus: () => void;
   clickResponseTime: (elapsedTime: number) => void;
   newRound: (round: number) => void;
-    winnerOfRound: (winner: string) => void; 
+  winnerOfRound: (winner: string) => void; 
+  otherPlayerJoined: (nickname: string) => void; // Lägg till här
 }
 
 // Events emitted by the client to the server
 export interface ClientToServerEvents {
   JoinTheGame: (nickname: string, callback: (success: boolean) => void) => void;
   virusClick: (nickname: string) => void;
+
 }
 
 export interface WaitingPlayer {
@@ -25,15 +27,4 @@ export interface WaitingPlayer {
 
 export interface GameTimeMessage {
   opponent: string;
-}
-
-export interface ServerToClientEvents {
-  hello: () => void;
-  JoinTheGame: (nickname: string) => void;
-  GameTime: (message: GameTimeMessage) => void;
-  UpdateLobby: (playerNames: string[]) => void;
-  positionVirus: () => void;
-  clickResponseTime: (elapsedTime: number) => void;
-  newRound: (round: number) => void;
-  otherPlayerJoined: (nickname: string) => void; // Lägg till här
 }

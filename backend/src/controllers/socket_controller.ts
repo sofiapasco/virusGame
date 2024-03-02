@@ -92,6 +92,17 @@ export const handleConnection = (
 	compareReactionTime();
 };
 
+// Lyssna efter händelsen "virusClick" från klienten
+socket.on("virusClick", () => {
+
+	// Till exempel:
+	const reactionTime = Date.now() - startTime;
+	console.log("Spelaren klickade på viruset! Reaktionstid:", reactionTime);
+
+	// Skicka tillbaka reaktionstiden till klienten om det behövs
+	 socket.emit("clickResponseTime", reactionTime);
+  });
+
 // Carolin - Jämför tid och utse rundans vinnare
 const compareReactionTime = () => {
 if (player1Time && player2Time) {

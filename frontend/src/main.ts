@@ -264,6 +264,13 @@ socket.on("newRound", (round: number) => {
   roundCounter.textContent = `Round: ${round}`;
 });
 
+//knapp för viruset
+const virusButton = document.getElementById("virusImg") as HTMLButtonElement;
+virusButton.addEventListener("click", () => {
+
+ // socket.emit("virusClick",nickname);
+});
+
 
 /*
 //Carros klocka
