@@ -94,6 +94,17 @@ const showWaitingRoom = (nickname: string) => {
   // Spelrummet ska fortfarande vara dolt
   playingRoom.classList.add("hide");
 
+  // Visa meddelandet "Waiting for another player..."
+  const messageElement = document.getElementById(
+    "message"
+  ) as HTMLParagraphElement;
+  if (messageElement) {
+    messageElement.textContent =
+      "Waiting for another player to join the game...";
+  } else {
+    console.error("Elementet för meddelandet kunde inte hittas.");
+  }
+
   //Connect two players
   const handleConnectionForGame = (response: GameTimeMessage) => {
     console.log("GameTime: Join was successful?", response);
@@ -316,5 +327,5 @@ window.addEventListener("DOMContentLoaded", () => {
 
 socket.on("winnerOfRound", (winner) => {
   //vinnaren skickas hit - kod här för att öka rätt poängsiffra
-  console.log("Vinnaren av rundan är: ", winner)
-})
+  console.log("Vinnaren av rundan är: ", winner);
+});
