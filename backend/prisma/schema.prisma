@@ -14,6 +14,14 @@ model User {
 }
 
 model Room {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
   name  String
+}
+
+model MatchResult {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  winner    String
+  loser     String
+  gameTime  Int      // Antalet sekunder för matchens speltid
+  createdAt DateTime @default(now())
 }

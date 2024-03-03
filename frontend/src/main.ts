@@ -268,7 +268,7 @@ socket.on("newRound", (round: number) => {
 const virusButton = document.getElementById("virusImg") as HTMLButtonElement;
 virusButton.addEventListener("click", () => {
 
- // socket.emit("virusClick",nickname);
+ //socket.emit("virusClick",nickname);
 });
 
 
@@ -325,3 +325,11 @@ socket.on("winnerOfRound", (winner) => {
   //vinnaren skickas hit - kod här för att öka rätt poängsiffra
   console.log("Vinnaren av rundan är: ", winner)
 })
+
+// Lyssna på "removeVirus" och ta bort viruset från gridden
+socket.on("removeVirus", () => {
+    const virusImg = document.getElementById("virusImage");
+    if (virusImg) {
+      virusImg.remove();
+    }
+  });

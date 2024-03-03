@@ -67,6 +67,8 @@ export const handleConnection = (
 			if (!clicked) { // = inte false, alltså true
 				clicked = true;  //spelaren har klickat
 				const reactionTime = Date.now() - startTime;
+				console.log("Spelaren klickade på viruset! Reaktionstid:", reactionTime);
+
 				const playerTime = { reactionTime: reactionTime, playerName: playerName };
 
 				if(!player1Time) {
@@ -101,6 +103,7 @@ socket.on("virusClick", () => {
 
 	// Skicka tillbaka reaktionstiden till klienten om det behövs
 	 socket.emit("clickResponseTime", reactionTime);
+	 io.emit("removeVirus");
   });
 
 // Carolin - Jämför tid och utse rundans vinnare
@@ -139,3 +142,44 @@ const startGame = async () => {
 	}
 }
 };
+
+// Funktion för att spara resultatet av en match i databasen
+const saveMatchResult = async (winner: string, loser: string, gameTime: number) => {
+	try {
+	  // Skapa en ny post i databasen med matchresultatet
+	  await prisma.matchResult.create({
+		data: {
+		  winner: winner,
+		  loser: loser,
+		  gameTime: gameTime
+		}
+	  });
+
+	  // Hämta de senaste 10 matcherna från databasen
+	  const latestMatches = await prisma.matchResult.findMany({
+		take: 10,
+		orderBy: {
+		  id: 'desc' // eller ett annat fält som representerar ordningen av matcherna
+		}
+	  });
+
+	  // Om antalet sparade matcher överstiger 10, ta bort de äldsta matcherna
+	  if (latestMatches.length > 10) {
+		const matchesToDelete = latestMatches.slice(10);
+		await prisma.matchResult.deleteMany({
+		  where: {
+			id: {
+			  in: matchesToDelete.map(match => match.id)
+			}
+		  }
+		});
+	  }
+
+	  console.log("Match result saved successfully.");
+	} catch (error) {
+	  console.error("Error saving match result:", error);
+	}
+  };
+
+  // Anropa funktionen för att spara matchresultat efter att en match är avslutad
+  saveMatchResult("Player 1", "Player 2", 300);
