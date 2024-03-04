@@ -130,6 +130,7 @@ const showWaitingRoom = (nickname: string) => {
       if (players.length >= 2) {
         // Om det finns två spelare i lobbyn, starta spelet
         showPlayingRoom();
+        showVirus();
       }
     } else {
       console.error("Elementet för lobbylistan kunde inte hittas.");
@@ -139,6 +140,7 @@ const showWaitingRoom = (nickname: string) => {
   // Listen to GameTime when to players want to play
   socket.on("GameTime", (message: GameTimeMessage) => {
     handleConnectionForGame(message);
+   
   });
 
   // Skapa ett nytt listelement för att visa spelarens nickname
@@ -247,11 +249,13 @@ function showVirus() {
   const x = getRandomInt(1, 10);
   const y = getRandomInt(1, 10);
   const virusImg = document.createElement("img");
-  virusImg.src = "/src/assets/Images/green-virus.png";
-  virusImg.alt = "ugly green virus";
+  virusImg.src ="/src/assets/Images/virus.png"
+  virusImg.alt ="ugly green virus";
   virusImg.setAttribute("id", "virusImage");
+  console.log("bild", virusImg)
   virusImg.style.gridColumn = x.toString();
   virusImg.style.gridRow = y.toString();
+
   // append image to the grid
   const gameBoard: HTMLElement | null = document.getElementById("gameBoard");
   if (!gameBoard) {

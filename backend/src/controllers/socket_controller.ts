@@ -32,66 +32,66 @@ export const handleConnection = (
 
 
 
-	// Nollställ arrayen av väntande spelare
-	waitingPlayers = [];
+// Nollställ arrayen av väntande spelare
+waitingPlayers = [];
 
-	// Lyssna efter anslutning till "JoinTheGame"-händelsen
-	socket.on("JoinTheGame", (nickname, callback) => {
-		debug(`${nickname} joined the game`);
+// Lyssna efter anslutning till "JoinTheGame"-händelsen
+socket.on("JoinTheGame", (nickname, callback) => {
+	debug(`${nickname} joined the game`);
 
-		// Lägg till spelaren i arrayen av väntande spelare
-		waitingPlayers.push({ socketId: socket.id, nickname });
-		debug("waitingPlayers: %o", waitingPlayers);
+	// Lägg till spelaren i arrayen av väntande spelare
+	waitingPlayers.push({ socketId: socket.id, nickname });
+	debug("waitingPlayers: %o", waitingPlayers);
 
-		// Emit the event to notify other players in the lobby
-		socket.broadcast.emit("otherPlayerJoined", nickname);
+	// Emit the event to notify other players in the lobby
+	socket.broadcast.emit("otherPlayerJoined", nickname);
 
-		// När alla användare har anslutit och spelet har startat, skicka "newRound" händelsen till klienten
-		socket.emit("newRound", roundCount + 1);
+	// När alla användare har anslutit och spelet har startat, skicka "newRound" händelsen till klienten
+	socket.emit("newRound", roundCount + 1);
 
-		callback(true);
+	callback(true);
+});
+
+// Carolins - Mäta spelarens reaktionstid vid ett klick.
+
+let startTime: number;
+let clicked: boolean = false;
+let player1Time: { reactionTime: number, playerName: string } | null = null;
+let player2Time: { reactionTime: number, playerName: string } | null = null;
+
+const startTimer = () => {  //startTimer() ska anropas med samma delay som viruset dyker upp
+	startTime = Date.now();
+
+	// lyssna efter klick på virus
+	socket.on("virusClick", (playerName: string) => {
+		if (!clicked) { // = inte false, alltså true
+			clicked = true;  //spelaren har klickat
+			const reactionTime = Date.now() - startTime;
+			console.log("Spelaren klickade på viruset! Reaktionstid:", reactionTime);
+
+			const playerTime = { reactionTime: reactionTime, playerName: playerName };
+
+			if(!player1Time) {
+				player1Time = playerTime;
+			} else if (!player2Time) {
+				player2Time = playerTime;
+			}
+			io.emit("clickResponseTime", reactionTime)
+			clicked = false; // återställer click
+		}
 	});
 
-	// Carolins - Mäta spelarens reaktionstid vid ett klick.
+		// om ingen klick gjorts på 30 sek
+		const handleNoclick = () => {
+		if (!clicked) {
+			clicked = true;
+			io.emit("clickResponseTime", 30000);
+			clicked = false; // återställer click
+		}
+};
 
-	let startTime: number;
-	let clicked: boolean = false;
-	let player1Time: { reactionTime: number, playerName: string } | null = null;
-	let player2Time: { reactionTime: number, playerName: string } | null = null;
-
-  	const startTimer = () => {  //startTimer() ska anropas med samma delay som viruset dyker upp
-		startTime = Date.now();
-
-		// lyssna efter klick på virus
-		socket.on("virusClick", (playerName: string) => {
-			if (!clicked) { // = inte false, alltså true
-				clicked = true;  //spelaren har klickat
-				const reactionTime = Date.now() - startTime;
-				console.log("Spelaren klickade på viruset! Reaktionstid:", reactionTime);
-
-				const playerTime = { reactionTime: reactionTime, playerName: playerName };
-
-				if(!player1Time) {
-					player1Time = playerTime;
-				} else if (!player2Time) {
-					player2Time = playerTime;
-				}
-				io.emit("clickResponseTime", reactionTime)
-				clicked = false; // återställer click
-			}
-		});
-
-		 // om ingen klick gjorts på 30 sek
-		 const handleNoclick = () => {
-			if (!clicked) {
-				clicked = true;
-				io.emit("clickResponseTime", 30000);
-				clicked = false; // återställer click
-			}
-	};
-
-	// När tiden skickats, kör compareReactionTime()
-	compareReactionTime();
+// När tiden skickats, kör compareReactionTime()
+compareReactionTime();
 };
 
 // Lyssna efter händelsen "virusClick" från klienten
