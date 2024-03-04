@@ -5,7 +5,7 @@ export interface ServerToClientEvents {
   JoinTheGame: (nickename: string) => void;
   GameTime: (message: GameTimeMessage) => void;
   UpdateLobby: (playerNames: string[]) => void;
-  positionVirus: () => void;
+  positionVirus: (x: number, y: number) => void;
   clickResponseTime: (elapsedTime: number) => void;
   newRound: (round: number) => void;
   winnerOfRound: (winner: string) => void;
@@ -17,6 +17,8 @@ export interface ServerToClientEvents {
   OtherPlayerJoined: (response: UserJoinResponse) => void;
   userJoined: (username: string, timestamp: number) => void;
   readyToStart: () => void;
+  getRandomInt:(x: number, y: number) => void;
+
 }
 
 // Events emitted by the client to the server

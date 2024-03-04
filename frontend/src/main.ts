@@ -141,7 +141,7 @@ const showWaitingRoom = (nickname: string) => {
       if (players.length >= 2) {
         // Om det finns två spelare i lobbyn, starta spelet
         showPlayingRoom();
-        showVirus();
+      
       }
     } else {
       console.error("Elementet för lobbylistan kunde inte hittas.");
@@ -257,34 +257,23 @@ moveOnwaitRoomButtonEl.addEventListener("click", (e) => {
  */
 
 // lyssna efter att servern emittar "positionVirus", anropa sedan showVirus()
-socket.on("positionVirus", () => {
-  showVirus();
+socket.on("positionVirus", ( x: number, y: number ) => {
+  console.log("Slumpad virusposition:", x,y);
+
+  showVirus(x,y);
 });
 
-function getRandomInt(min: number, max: number) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
 
-function showVirus() {
-  const x = getRandomInt(1, 10);
-  const y = getRandomInt(1, 10);
+function showVirus(x:number, y:number) {
   const virusImg = document.createElement("img");
   virusImg.src ="/src/assets/Images/virus.png"
   virusImg.alt ="ugly green virus";
   virusImg.setAttribute("id", "virusImage");
   console.log("bild", virusImg)
+
   virusImg.style.gridColumn = x.toString();
   virusImg.style.gridRow = y.toString();
-  
-  // Gör bilden klickbar genom att lägga till en 'click'-händelselyssnare
-  virusImg.addEventListener("click", function() {
-    console.log("Virus klickad!");
-    
-    socket.emit("virusClick", nickName);
-    removeVirus();
-  });
+
 
   // Appendera bilden till spelbrädet
   const gameBoard = document.getElementById("gameBoard");
@@ -293,6 +282,16 @@ function showVirus() {
   } else {
     gameBoard.appendChild(virusImg);
   }
+
+  // Gör bilden klickbar genom att lägga till en 'click'-händelselyssnare
+  virusImg.addEventListener("click", function() {
+    console.log("Virus klickad!");
+    
+    socket.emit("virusClick", nickName);
+    removeVirus();
+  });
+
+
 }
 
 // Funktion för att ta bort viruset

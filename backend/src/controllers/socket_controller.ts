@@ -71,24 +71,41 @@ export const handleConnection = (
 		debug(`${nickname} joined the game`);
 
 	// Lägg till spelaren i arrayen av väntande spelare
-	waitingPlayers.push({ socketId: socket.id, nickname });
+	//waitingPlayers.push({ socketId: socket.id, nickname });
 	debug("waitingPlayers: %o", waitingPlayers);
 
 	// Emit the event to notify other players in the lobby
-	socket.broadcast.emit("otherPlayerJoined", nickname);
+	//socket.broadcast.emit("otherPlayerJoined", nickname);
 
 		// När alla användare har anslutit och spelet har startat, skicka "newRound" händelsen till klienten
 		socket.emit("newRound", roundCount + 1);
-		socket.emit("positionVirus");
+
 
 
 		// Uppdatera lobbyn för att visa de nya spelarna
 		const nicknames: string[] = waitingPlayers.map(
 			(player) => player.nickname
 		);
+/*
+		function getRandomInt(min: number, max: number): number {
+			min = Math.ceil(min);
+			max = Math.floor(max);
+			return Math.floor(Math.random() * (max - min + 1)) + min;
+		}
+*/
+		if (waitingPlayers.length >= 2) {
+/*
+			  // Fördröj slumpningen av koordinater med 1,5 till 10 sekunder
+			  const delay = getRandomInt(1500, 10000);
+			  setTimeout(() => {
+				  // Slumpa x- och y-koordinater
+				  const x = getRandomInt(1, 10);
+				  const y = getRandomInt(1, 10);
 
-		if (waitingPlayers.length == 2) {
-			//Gör vidare i denna
+				  // Skicka koordinaterna till klienten
+				  io.emit("positionVirus",  x, y );
+			  }, delay);
+*/
 		}
 
 		io.emit("UpdateLobby", nicknames);
