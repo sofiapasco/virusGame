@@ -74,6 +74,8 @@ export const handleConnection = (
 
 		// När alla användare har anslutit och spelet har startat, skicka "newRound" händelsen till klienten
 		socket.emit("newRound", roundCount + 1);
+		socket.emit("positionVirus");
+
 
 		// Uppdatera lobbyn för att visa de nya spelarna
 		const nicknames: string[] = waitingPlayers.map(
@@ -174,7 +176,7 @@ socket.on("virusClick", (nickname) => {
 	// Skicka tillbaka reaktionstiden till klienten om det behövs
 	 socket.emit("clickResponseTime", reactionTime);
 
-	 io.emit("removeVirus");
+	 socket.emit("removeVirus");
   });
 
 	// Carolin - Jämför tid och utse rundans vinnare
@@ -268,7 +270,7 @@ socket.on("virusClick", (nickname) => {
 	};
 
 	// Anropa funktionen för att spara matchresultat efter att en match är avslutad
-	saveMatchResult("Player 1", "Player 2", 300);
+	saveMatchResult("Player 1", "Player 2",300);
 };
 
 // Skicka uppdateringar till alla anslutna klienter
