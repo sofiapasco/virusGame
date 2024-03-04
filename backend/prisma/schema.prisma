@@ -21,3 +21,11 @@ model User {
   socketId  String
   room      Room        @relation(fields: [roomId], references: [id])
 }
+
+model MatchResult {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  winner    String
+  loser     String
+  gameTime  Int      // Antalet sekunder för matchens speltid
+  createdAt DateTime @default(now())
+}

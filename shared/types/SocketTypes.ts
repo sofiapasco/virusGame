@@ -2,7 +2,6 @@ export {};
 
 // Events emitted by the server to the client
 export interface ServerToClientEvents {
-  hello: () => void;
   JoinTheGame: (nickename: string) => void;
   GameTime: (message: GameTimeMessage) => void;
   UpdateLobby: (playerNames: string[]) => void;
@@ -10,6 +9,11 @@ export interface ServerToClientEvents {
   clickResponseTime: (elapsedTime: number) => void;
   newRound: (round: number) => void;
   winnerOfRound: (winner: string) => void;
+  removeVirus: () => void;
+  updateScore: (data: {
+    latestMatches: MatchResult[];
+    highscore: { player: string; score: number } | null;
+  }) => void;
   OtherPlayerJoined: (response: UserJoinResponse) => void;
   userJoined: (username: string, timestamp: number) => void;
   readyToStart: () => void;
@@ -22,6 +26,7 @@ export interface ClientToServerEvents {
     callback: (response: UserJoinResponse) => void
   ) => void;
   virusClick: (nickname: string) => void;
+
   getRoomList: (callback: (rooms: Room[]) => void) => void;
   userJoinRequest: (
     nickname: string,
@@ -46,6 +51,19 @@ export interface GameTimeMessage {
   opponent: string;
 }
 
+export interface ReactionTimes {
+  [player: string]: {
+    total: number;
+    count: number;
+  };
+}
+
+export interface MatchResult {
+  id: string;
+  winner: string;
+  loser: string;
+  gameTime: number;
+}
 export interface Room {
   id: string;
   name: string;

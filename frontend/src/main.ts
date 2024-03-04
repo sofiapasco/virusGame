@@ -230,6 +230,8 @@ socket.on("positionVirus", () => {
 });
 
 function getRandomInt(min: number, max: number) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
@@ -241,7 +243,7 @@ function showVirus() {
   virusImg.alt = "ugly green virus";
   virusImg.setAttribute("id", "virusImage");
   virusImg.style.gridColumn = x.toString();
-  virusImg.style.gridColumn = y.toString();
+  virusImg.style.gridRow = y.toString();
   // append image to the grid
   const gameBoard: HTMLElement | null = document.getElementById("gameBoard");
   if (!gameBoard) {
@@ -257,8 +259,13 @@ socket.on("newRound", (round: number) => {
   roundCounter.textContent = `Round: ${round}`;
 });
 
-/*
+//knapp för viruset
+const virusButton = document.getElementById("virusImg") as HTMLButtonElement;
+virusButton.addEventListener("click", () => {
+  //socket.emit("virusClick",nickname);
+});
 
+/*
 //Carros klocka
 
 // Funktion för att starta en timer
@@ -305,9 +312,33 @@ window.addEventListener("DOMContentLoaded", () => {
     startTimer(opponentTimeElement);
   }
 });
-*/
 
+*/
 socket.on("winnerOfRound", (winner) => {
   //vinnaren skickas hit - kod här för att öka rätt poängsiffra
   console.log("Vinnaren av rundan är: ", winner);
+});
+
+// Lyssna på "removeVirus" och ta bort viruset från gridden
+socket.on("removeVirus", () => {
+  const virusImg = document.getElementById("virusImage");
+  if (virusImg) {
+    virusImg.remove();
+  }
+});
+
+// Lyssna efter uppdateringar från servern
+socket.on("updateScore", (data) => {
+  const { highscore } = data;
+
+  // Uppdatera highscore-listan med den senaste highscoren
+  if (highscore !== null) {
+    const { player, score } = highscore;
+    const highscoreListElement = document.getElementById("highscore-list");
+    if (highscoreListElement) {
+      highscoreListElement.innerHTML = `<h2>Highscore</h2><p>${player} - ${score}</p>`;
+    }
+  } else {
+    console.log("No highscore available");
+  }
 });
