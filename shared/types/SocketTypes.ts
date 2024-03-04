@@ -11,6 +11,7 @@ export interface ServerToClientEvents {
   winnerOfRound: (winner: string) => void; 
   otherPlayerJoined: (nickname: string) => void; 
   removeVirus: () => void; 
+  updateScore: (data: { latestMatches: MatchResult[], highscore: { player: string; score: number; } | null}) => void;
 }
 
 // Events emitted by the client to the server
@@ -27,4 +28,18 @@ export interface WaitingPlayer {
 
 export interface GameTimeMessage {
   opponent: string;
+}
+
+export interface ReactionTimes {
+  [player: string]: {
+    total: number;
+    count: number;
+  };
+}
+
+export interface MatchResult {
+  id: string;
+  winner: string;
+  loser: string;
+  gameTime: number;
 }

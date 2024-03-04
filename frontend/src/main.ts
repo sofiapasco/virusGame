@@ -3,6 +3,7 @@ import {
   ClientToServerEvents,
   ServerToClientEvents,
   GameTimeMessage,
+
 } from "@shared/types/SocketTypes";
 import "./assets/scss/style.scss";
 
@@ -336,3 +337,20 @@ socket.on("removeVirus", () => {
       virusImg.remove();
     }
   });
+
+
+// Lyssna efter uppdateringar från servern
+socket.on('updateScore', (data) => {
+  const { highscore } = data;
+
+  // Uppdatera highscore-listan med den senaste highscoren
+  if (highscore !== null) {
+    const { player, score } = highscore;
+    const highscoreListElement = document.getElementById('highscore-list');
+    if (highscoreListElement) {
+      highscoreListElement.innerHTML = `<h2>Highscore</h2><p>${player} - ${score}</p>`;
+    }
+  } else {
+    console.log('No highscore available');
+  }
+});

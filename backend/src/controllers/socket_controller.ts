@@ -6,6 +6,7 @@ import {
 	ClientToServerEvents,
 	ServerToClientEvents,
 	WaitingPlayer,
+	ReactionTimes
 } from "@shared/types/SocketTypes";
 import prisma from "../prisma";
 
@@ -143,10 +144,81 @@ const startGame = async () => {
 }
 };
 
-// Funktion för att spara resultatet av en match i databasen
+// Skicka uppdateringar till alla anslutna klienter
+const sendUpdateToClients = async () => {
+	try {
+	  // Hämta de senaste matchresultaten från databasen
+	  const latestMatches = await prisma.matchResult.findMany({
+		take: 10,
+		orderBy: {
+		  id: 'desc'
+		}
+	  });
+
+	  // Beräkna highscore
+	  const highscore = await calculateHighscore();
+
+	  // Skicka uppdaterad statistik till klienten
+	  io.emit('updateScore', { latestMatches, highscore });
+
+	} catch (error) {
+	  console.error("Error sending update to clients:", error);
+	}
+  };
+
+
+  const calculateHighscore = async () => {
+	try {
+	  // Hämta de senaste matchresultaten från databasen
+	  const latestMatches = await prisma.matchResult.findMany({
+		take: 10,
+		orderBy: {
+		  id: 'desc'
+		}
+	  });
+
+	  // Skapa ett objekt för att lagra reaktionstiderna för varje spelare
+	  const reactionTimes: ReactionTimes = {};
+
+	  // Beräkna totala reaktionstid och antal matcher för varje spelare
+	  latestMatches.forEach(match => {
+		if (!reactionTimes[match.winner]) {
+		  reactionTimes[match.winner] = { total: 0, count: 0 };
+		}
+		reactionTimes[match.winner].total += match.gameTime;
+		reactionTimes[match.winner].count++;
+
+		if (!reactionTimes[match.loser]) {
+		  reactionTimes[match.loser] = { total: 0, count: 0 };
+		}
+		reactionTimes[match.loser].total += match.gameTime;
+		reactionTimes[match.loser].count++;
+	  });
+
+	  // Beräkna genomsnittlig reaktionstid för varje spelare och hitta highscore
+	  let highscore = Infinity;
+	  let highscorePlayer = '';
+	  for (const player in reactionTimes) {
+		const averageTime = reactionTimes[player].total / reactionTimes[player].count;
+		if (averageTime < highscore) {
+		  highscore = averageTime;
+		  highscorePlayer = player;
+		}
+	  }
+
+	  return { player: highscorePlayer, score: highscore };
+	} catch (error) {
+	  console.error("Error calculating highscore:", error);
+	  return null;
+	}
+};
+
+
+
+//Funktion för att spara resultatet av en match i databasen
 const saveMatchResult = async (winner: string, loser: string, gameTime: number) => {
 	try {
-	  // Skapa en ny post i databasen med matchresultatet
+	  // Skapa en ny post i databasen med matchresultatet och ska skickas till klienten
 	  await prisma.matchResult.create({
 		data: {
 		  winner: winner,
@@ -159,7 +231,7 @@ const saveMatchResult = async (winner: string, loser: string, gameTime: number) 
 	  const latestMatches = await prisma.matchResult.findMany({
 		take: 10,
 		orderBy: {
-		  id: 'desc' // eller ett annat fält som representerar ordningen av matcherna
+		  id: 'desc'
 		}
 	  });
 
@@ -174,7 +246,7 @@ const saveMatchResult = async (winner: string, loser: string, gameTime: number) 
 		  }
 		});
 	  }
-
+	  await sendUpdateToClients();
 	  console.log("Match result saved successfully.");
 	} catch (error) {
 	  console.error("Error saving match result:", error);
@@ -183,3 +255,4 @@ const saveMatchResult = async (winner: string, loser: string, gameTime: number) 
 
   // Anropa funktionen för att spara matchresultat efter att en match är avslutad
   saveMatchResult("Player 1", "Player 2", 300);
+
