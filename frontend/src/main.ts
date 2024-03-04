@@ -237,8 +237,11 @@ socket.on("positionVirus", () => {
 });
 
 function getRandomInt(min: number, max: number) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+
 
 function showVirus() {
   const x = getRandomInt(1, 10);
@@ -248,7 +251,7 @@ function showVirus() {
   virusImg.alt = "ugly green virus";
   virusImg.setAttribute("id", "virusImage");
   virusImg.style.gridColumn = x.toString();
-  virusImg.style.gridColumn = y.toString();
+  virusImg.style.gridRow = y.toString();
   // append image to the grid
   const gameBoard: HTMLElement | null = document.getElementById("gameBoard");
   if (!gameBoard) {
