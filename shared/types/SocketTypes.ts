@@ -12,6 +12,7 @@ export interface ServerToClientEvents {
   otherPlayerJoined: (nickname: string) => void; 
   removeVirus: () => void; 
   updateScore: (data: { latestMatches: MatchResult[], highscore: { player: string; score: number; } | null}) => void;
+  
 }
 
 // Events emitted by the client to the server

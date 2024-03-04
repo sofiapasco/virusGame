@@ -49,6 +49,7 @@ export const handleConnection = (
 
 		// När alla användare har anslutit och spelet har startat, skicka "newRound" händelsen till klienten
 		socket.emit("newRound", roundCount + 1);
+		socket.emit("positionVirus")
 
 		callback(true);
 	});
@@ -96,14 +97,15 @@ export const handleConnection = (
 };
 
 // Lyssna efter händelsen "virusClick" från klienten
-socket.on("virusClick", () => {
+socket.on("virusClick", (nickname) => {
 
 	// Till exempel:
 	const reactionTime = Date.now() - startTime;
-	console.log("Spelaren klickade på viruset! Reaktionstid:", reactionTime);
+	console.log(`Spelaren ${nickname} klickade på viruset! Reaktionstid:`, reactionTime);
 
 	// Skicka tillbaka reaktionstiden till klienten om det behövs
 	 socket.emit("clickResponseTime", reactionTime);
+
 	 io.emit("removeVirus");
   });
 

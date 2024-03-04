@@ -4,6 +4,7 @@ import {
   ServerToClientEvents,
   GameTimeMessage,
 
+
 } from "@shared/types/SocketTypes";
 import "./assets/scss/style.scss";
 
@@ -61,6 +62,7 @@ const socket: Socket<ServerToClientEvents, ClientToServerEvents> =
   io(SOCKET_HOST);
 
 let nickname: string | null = null;
+let nickName:string;
 
 // Listen for when connection is established
 socket.on("connect", () => {
@@ -243,7 +245,6 @@ function getRandomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-
 function showVirus() {
   const x = getRandomInt(1, 10);
   const y = getRandomInt(1, 10);
@@ -253,12 +254,29 @@ function showVirus() {
   virusImg.setAttribute("id", "virusImage");
   virusImg.style.gridColumn = x.toString();
   virusImg.style.gridRow = y.toString();
-  // append image to the grid
-  const gameBoard: HTMLElement | null = document.getElementById("gameBoard");
+  
+  // Gör bilden klickbar genom att lägga till en 'click'-händelselyssnare
+  virusImg.addEventListener("click", function() {
+    console.log("Virus klickad!");
+    
+    socket.emit("virusClick", nickName);
+    removeVirus();
+  });
+
+  // Appendera bilden till spelbrädet
+  const gameBoard = document.getElementById("gameBoard");
   if (!gameBoard) {
     console.error("unable to find gameBoard element");
   } else {
     gameBoard.appendChild(virusImg);
+  }
+}
+
+// Funktion för att ta bort viruset
+function removeVirus() {
+  const virusImg = document.getElementById("virusImage");
+  if (virusImg) {
+    virusImg.remove();
   }
 }
 
@@ -268,12 +286,6 @@ socket.on("newRound", (round: number) => {
   roundCounter.textContent = `Round: ${round}`;
 });
 
-//knapp för viruset
-const virusButton = document.getElementById("virusImg") as HTMLButtonElement;
-virusButton.addEventListener("click", () => {
-
- //socket.emit("virusClick",nickname);
-});
 
 
 /*
@@ -329,15 +341,6 @@ socket.on("winnerOfRound", (winner) => {
   //vinnaren skickas hit - kod här för att öka rätt poängsiffra
   console.log("Vinnaren av rundan är: ", winner)
 })
-
-// Lyssna på "removeVirus" och ta bort viruset från gridden
-socket.on("removeVirus", () => {
-    const virusImg = document.getElementById("virusImage");
-    if (virusImg) {
-      virusImg.remove();
-    }
-  });
-
 
 // Lyssna efter uppdateringar från servern
 socket.on('updateScore', (data) => {
