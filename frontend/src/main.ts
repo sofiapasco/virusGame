@@ -3,8 +3,7 @@ import {
   ClientToServerEvents,
   ServerToClientEvents,
   GameTimeMessage,
-
-
+  UserJoinResponse,
 } from "@shared/types/SocketTypes";
 import "./assets/scss/style.scss";
 
@@ -32,12 +31,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (nickname) {
       // Använd Socket.IO för att skicka användarnamnet till servern
-      socket.emit("JoinTheGame", nickname, (success: boolean) => {
-        if (success) {
-          console.log("Join was successful", success);
-
-          // Hantera logik för att gå vidare från formuläret här...
-          // Till exempel, visa ett annat UI-element eller rum
+      socket.emit("JoinTheGame", nickname, (response: UserJoinResponse) => {
+        if (response.success) {
+          console.log("Join was successful", response.nicknames);
+          updateLobby(response.nicknames);
         } else {
           alert("You cannot play now, try again later.");
         }
@@ -72,7 +69,7 @@ socket.on("connect", () => {
   showStartRoom(); // visa startrummet
 });
 
-// Show start room
+// Show start room - där inputfältet är
 const showStartRoom = () => {
   const nicknameScreen = document.getElementById("nickname");
   if (nicknameScreen) {
@@ -97,6 +94,17 @@ const showWaitingRoom = (nickname: string) => {
   // Spelrummet ska fortfarande vara dolt
   playingRoom.classList.add("hide");
 
+  // Visa meddelandet "Waiting for another player..."
+  const messageElement = document.getElementById(
+    "message"
+  ) as HTMLParagraphElement;
+  if (messageElement) {
+    messageElement.textContent =
+      "Waiting for another player to join the game...";
+  } else {
+    console.error("Elementet för meddelandet kunde inte hittas.");
+  }
+
   //Connect two players
   const handleConnectionForGame = (response: GameTimeMessage) => {
     console.log("GameTime: Join was successful?", response);
@@ -107,35 +115,6 @@ const showWaitingRoom = (nickname: string) => {
       showPlayingRoom();
     } else {
       console.log("Waiting for someone to play");
-    }
-  };
-
-  // Lyssna på uppdateringar från servern om lobbyn
-  socket.on("UpdateLobby", (players: string[]) => {
-    console.log("Lobby updated with players:", players);
-    updateLobby(players);
-  });
-
-  // Uppdatera UI för lobbyn med namnen på spelarna
-  const updateLobby = (players: string[]) => {
-    const lobbyList = document.getElementById("player-list");
-
-    if (lobbyList) {
-      lobbyList.innerHTML = ""; // Rensa lobbyn för att undvika dubbletter
-
-      players.forEach((player) => {
-        const playerElement = document.createElement("li");
-        playerElement.textContent = player;
-        lobbyList.appendChild(playerElement);
-      });
-
-      // Kontrollera om det finns tillräckligt med spelare för att starta spelet
-      if (players.length >= 2) {
-        // Om det finns två spelare i lobbyn, starta spelet
-        showPlayingRoom();
-      }
-    } else {
-      console.error("Elementet för lobbylistan kunde inte hittas.");
     }
   };
 
@@ -150,44 +129,55 @@ const showWaitingRoom = (nickname: string) => {
 
   // Lägg till det nya listelementet i listan med spelare
   const playersList = document.getElementById("players");
+
   if (playersList) {
+    console.log(1);
     playersList.appendChild(playerListItem);
   } else {
-    console.error("Elementet för spelarlistan kunde inte hittas.");
-  }
-
-  //show playingroom
-  const showPlayingRoom = () => {
-    // "nickname"-skärmen och "lobby" ska vara dolda
-    const nicknameScreen = document.getElementById("nickname");
-    if (nicknameScreen) {
-      nicknameScreen.classList.add("hide");
-    }
-    waitingScreen.classList.add("hide");
-
-    // Visa "game wrapper" genom att ta bort "hide"-klassen
-    playingRoom.classList.remove("hide");
-  };
-  // Sätt upp din anslutningslogik
-  socket.on("connect", () => {
-    console.log("Connected to the server", SOCKET_HOST);
-    showStartRoom();
-  });
-};
-
-const addOtherPlayerToLobby = (nickname: string) => {
-  const playerList = document.getElementById("players") as HTMLUListElement;
-  if (playerList) {
-    const otherPlayerItem = document.createElement("li");
-    otherPlayerItem.textContent = nickname;
-    playerList.appendChild(otherPlayerItem);
-  } else {
+    console.log(2);
     console.error("Elementet för spelarlistan kunde inte hittas.");
   }
 };
 
-socket.on("otherPlayerJoined", (nickname) => {
-  addOtherPlayerToLobby(nickname);
+//show playingroom
+const showPlayingRoom = () => {
+  // "nickname"-skärmen och "lobby" ska vara dolda
+  const nicknameScreen = document.getElementById("nickname");
+  if (nicknameScreen) {
+    nicknameScreen.classList.add("hide");
+  }
+  waitingScreen.classList.add("hide");
+
+  // Visa "game wrapper" genom att ta bort "hide"-klassen
+  playingRoom.classList.remove("hide");
+};
+// Sätt upp din anslutningslogik
+socket.on("connect", () => {
+  console.log("Connected to the server", SOCKET_HOST);
+  showStartRoom();
+});
+
+// Lyssna på uppdateringar från servern om lobbyn
+socket.on("UpdateLobby", (players: string[]) => {
+  console.log("Lobby updated with players:", players);
+  updateLobby(players);
+});
+
+// Uppdatera UI för lobbyn med namnen på spelarna
+const updateLobby = (players: string[]) => {
+  // Kontrollera om det finns tillräckligt med spelare för att starta spelet
+  if (players.length == 2) {
+    // Om det finns två spelare i lobbyn, starta spelet
+    showPlayingRoom();
+  }
+};
+
+socket.on("OtherPlayerJoined", (response) => {
+  if (!response.success) {
+    console.log("Error when other player joined");
+  }
+
+  updateLobby(response.nicknames);
 });
 
 // Listen for when server got tired of us
@@ -217,15 +207,16 @@ moveOnwaitRoomButtonEl.addEventListener("click", (e) => {
   nickname = trimmedNickname;
 
   //Ansluter till serven
-  socket.emit("JoinTheGame", nickname, (success) => {
-    console.log("JoinTheGame: Join was successful", success);
+  socket.emit("JoinTheGame", nickname, (response) => {
+    console.log("JoinTheGame: Join was successful", response.success);
 
-    if (!success) {
+    if (!response.success) {
       alert("You can not play now, try again later");
       return;
     }
     // Call showWaitingRoom with the nickname to display it
     showWaitingRoom(nickname!);
+    updateLobby(response.nicknames);
   });
 });
 
@@ -343,17 +334,17 @@ socket.on("winnerOfRound", (winner) => {
 })
 
 // Lyssna efter uppdateringar från servern
-socket.on('updateScore', (data) => {
+socket.on("updateScore", (data) => {
   const { highscore } = data;
 
   // Uppdatera highscore-listan med den senaste highscoren
   if (highscore !== null) {
     const { player, score } = highscore;
-    const highscoreListElement = document.getElementById('highscore-list');
+    const highscoreListElement = document.getElementById("highscore-list");
     if (highscoreListElement) {
       highscoreListElement.innerHTML = `<h2>Highscore</h2><p>${player} - ${score}</p>`;
     }
   } else {
-    console.log('No highscore available');
+    console.log("No highscore available");
   }
 });
