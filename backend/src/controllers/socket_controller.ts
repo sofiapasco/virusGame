@@ -8,53 +8,21 @@ import {
 	WaitingPlayer,
 	UserJoinResponse,
 	RoomWithUsers,
+	User,
 } from "@shared/types/SocketTypes";
 import prisma from "../prisma";
-
-// Extend the existing WaitingPlayer type to include readiness
-interface WaitingPlayerExtended extends WaitingPlayer {
-	isReady: boolean;
-}
 
 // Skapa en ny instans av debug
 const debug = Debug("backend:socket_controller");
 
-// Skapa en array för att spåra väntande spelare
-let waitingPlayers: WaitingPlayerExtended[] = [];
+let waitingPlayers: WaitingPlayer[] = [];
 
 // Antal rundor
 let roundCount = 0;
 const totalRounds = 10;
 let gameStarted = false;
 
-// Your startGame function now checks if all players are ready before starting
-const startGame = async () => {
-	// Check if all players are ready before starting the game
-	if (waitingPlayers.every((player) => player.isReady)) {
-		try {
-			// Your existing logic to create users in the database goes here
-			//			for (const player of waitingPlayers) {
-			//				await prisma.user.create({
-			//					data: {
-			//
-			//			nickname: player.nickname,
-			//			scores: [],
-			//		},
-			//	});
-			//}
-			//console.log(player.data);
-			// Start round logic or any other start game logic should go here
-			// After starting the game, reset the waitingPlayers array
-			gameStarted = true;
-			waitingPlayers = [];
-		} catch (error) {
-			debug("Error creating user:", error);
-		}
-	} else {
-		// Handle the case where not all players are ready (if necessary)
-	}
-};
-
+// Funktion som initierar ett nytt spel om två spelare är redo
 export const handleConnection = (
 	socket: Socket<ClientToServerEvents, ServerToClientEvents>,
 	io: Server<ClientToServerEvents, ServerToClientEvents>
@@ -70,7 +38,7 @@ export const handleConnection = (
 	});
 
 	// Lyssna efter anslutning till "JoinTheGame"-händelsen
-	socket.on("JoinTheGame", (nickname: string, callback) => {
+	socket.on("JoinTheGame", async (nickname: string, callback) => {
 		debug(
 			`Attempt to join game by ${nickname}, game started: ${gameStarted}`
 		);
@@ -86,50 +54,73 @@ export const handleConnection = (
 		}
 
 		// Lägg till spelaren i arrayen av väntande spelare
-		waitingPlayers.push({ socketId: socket.id, nickname, isReady: false });
+		waitingPlayers.push({ socketId: socket.id, nickname });
 		debug("waitingPlayers: %o", waitingPlayers);
 
 		// Uppdatera lobbyn för att visa de nya spelarna
-		const nicknames: string[] = waitingPlayers.map(
-			(player) => player.nickname
-		);
+		const nicknames = waitingPlayers.map((player) => player.nickname);
 
-		if (waitingPlayers.length == 2) {
-			//Gör vidare i denna
+		//2 Spelar är anslutna och vi skapar ett rum till dem.
+		if (waitingPlayers.length === 2) {
+			var roomWithUsers = await initiateGameIfReady(waitingPlayers);
+			io.emit("UpdateLobby", nicknames);
+			waitingPlayers = [];
+
+			callback({
+				success: true,
+				room: roomWithUsers,
+				nicknames,
+			});
 		}
 
-		io.emit("UpdateLobby", nicknames);
+		callback({
+			success: true,
+			room: null, // Ingen faktiskt rum ännu, så rummet är null
+			nicknames,
+		});
+	});
 
-		const room: RoomWithUsers = {
-			id: "The id",
-			name: "The name",
+	async function initiateGameIfReady(
+		players: WaitingPlayer[]
+	): Promise<RoomWithUsers> {
+		let roomWithUsers: RoomWithUsers = {
+			id: "",
+			name: "",
 			users: [],
 		};
 
-		const response: UserJoinResponse = {
-			success: true,
-			room: room,
-			nicknames: nicknames,
-		};
-		io.emit("OtherPlayerJoined", response);
-		callback(response);
-	});
+		debug("Before creating a room");
+		let dbRoom = await prisma.room.create({
+			data: {
+				name: `Game between ${players[0].nickname} and ${players[1].nickname}`,
+			},
+		});
+		debug("After creating a room");
 
-	// Handle the playerReady event when a player indicates they are ready
-	socket.on("playerReady", () => {
-		// Find the player and set their isReady flag to true
-		const player = waitingPlayers.find((p) => p.socketId === socket.id);
-		if (player) {
-			player.isReady = true;
-			// Check if all players are ready and start the game
-			if (waitingPlayers.every((p) => p.isReady)) {
-				startGame();
-			}
+		roomWithUsers.name = dbRoom.name;
+		roomWithUsers.id = dbRoom.id;
+		console.log(dbRoom);
+
+		debug("Before creating users");
+
+		for (let player of players) {
+			let dbUser = await prisma.user.create({
+				data: {
+					nickname: player.nickname,
+					roomId: dbRoom.id,
+					socketId: player.socketId,
+				},
+			});
+
+			roomWithUsers.users.push(dbUser);
+			console.log(dbUser);
 		}
-	});
+		debug("After creating users");
+
+		return roomWithUsers;
+	}
 
 	// Carolins - Mäta spelarens reaktionstid vid ett klick.
-
 	let startTime: number;
 	let clicked: boolean = false;
 	let player1Time: { reactionTime: number; playerName: string } | null = null;

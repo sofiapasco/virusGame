@@ -17,8 +17,7 @@ export interface ServerToClientEvents {
   OtherPlayerJoined: (response: UserJoinResponse) => void;
   userJoined: (username: string, timestamp: number) => void;
   readyToStart: () => void;
-  getRandomInt:(x: number, y: number) => void;
-
+  getRandomInt: (x: number, y: number) => void;
 }
 
 // Events emitted by the client to the server
