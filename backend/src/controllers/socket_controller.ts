@@ -134,6 +134,8 @@ export const handleConnection = (
 			// Check if all players are ready and start the game
 			if (waitingPlayers.every((p) => p.isReady)) {
 				startGame();
+				socket.emit("positionVirus");
+
 			}
 		}
 	});

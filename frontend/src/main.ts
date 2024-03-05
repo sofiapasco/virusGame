@@ -257,22 +257,22 @@ moveOnwaitRoomButtonEl.addEventListener("click", (e) => {
  */
 
 // lyssna efter att servern emittar "positionVirus", anropa sedan showVirus()
-socket.on("positionVirus", ( x: number, y: number ) => {
-  console.log("Slumpad virusposition:", x,y);
+socket.on("positionVirus", () => {
+  console.log("Slumpad virusposition:");
 
-  showVirus(x,y);
+  showVirus();
 });
 
 
-function showVirus(x:number, y:number) {
+function showVirus() {
   const virusImg = document.createElement("img");
   virusImg.src ="/src/assets/Images/virus.png"
   virusImg.alt ="ugly green virus";
   virusImg.setAttribute("id", "virusImage");
   console.log("bild", virusImg)
 
-  virusImg.style.gridColumn = x.toString();
-  virusImg.style.gridRow = y.toString();
+  virusImg.style.gridColumn = toString();
+  virusImg.style.gridRow = toString();
 
 
   // Appendera bilden till spelbrädet
