@@ -25,6 +25,7 @@ let waitingPlayers: WaitingPlayerExtended[] = [];
 // Antal rundor
 let roundCount = 0;
 const totalRounds = 10;
+let gameStarted = false;
 
 // Your startGame function now checks if all players are ready before starting
 const startGame = async () => {
@@ -42,9 +43,7 @@ const startGame = async () => {
 			//	});
 			//}
 			//console.log(player.data);
-			debug("Starting the game...");
-			// Start round logic or any other start game logic should go here
-			// After starting the game, reset the waitingPlayers array
+			gameStarted = true;
 			waitingPlayers = [];
 		} catch (error) {
 			debug("Error creating user:", error);
@@ -60,9 +59,29 @@ export const handleConnection = (
 ) => {
 	debug("🙋 A user connected", socket.id);
 
+	socket.on("disconnect", () => {
+		// Ta bort användaren från waitingPlayers baserat på socket.id
+		waitingPlayers = waitingPlayers.filter(
+			(player) => player.socketId !== socket.id
+		);
+		debug(`User disconnected, removed from waitingPlayers: ${socket.id}`);
+	});
+
 	// Lyssna efter anslutning till "JoinTheGame"-händelsen
 	socket.on("JoinTheGame", (nickname: string, callback) => {
-		debug(`${nickname} joined the game`);
+		debug(
+			`Attempt to join game by ${nickname}, game started: ${gameStarted}`
+		);
+
+		if (gameStarted) {
+			debug("Game already started, new players cannot join right now.");
+			callback({
+				success: false,
+				room: null,
+				nicknames: [],
+			});
+			return;
+		}
 
 		// Lägg till spelaren i arrayen av väntande spelare
 		waitingPlayers.push({ socketId: socket.id, nickname, isReady: false });
