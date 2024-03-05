@@ -59,6 +59,7 @@ const socket: Socket<ServerToClientEvents, ClientToServerEvents> =
   io(SOCKET_HOST);
 
 let nickname: string | null = null;
+let nickName:string;
 
 // Listen for when connection is established
 socket.on("connect", () => {
@@ -117,9 +118,40 @@ const showWaitingRoom = (nickname: string) => {
     }
   };
 
+  // Lyssna på uppdateringar från servern om lobbyn
+  socket.on("UpdateLobby", (players: string[]) => {
+    console.log("Lobby updated with players:", players);
+    updateLobby(players);
+  });
+
+  // Uppdatera UI för lobbyn med namnen på spelarna
+  const updateLobby = (players: string[]) => {
+    const lobbyList = document.getElementById("player-list");
+
+    if (lobbyList) {
+      lobbyList.innerHTML = ""; // Rensa lobbyn för att undvika dubbletter
+
+      players.forEach((player) => {
+        const playerElement = document.createElement("li");
+        playerElement.textContent = player;
+        lobbyList.appendChild(playerElement);
+      });
+
+      // Kontrollera om det finns tillräckligt med spelare för att starta spelet
+      if (players.length >= 2) {
+        // Om det finns två spelare i lobbyn, starta spelet
+        showPlayingRoom();
+      
+      }
+    } else {
+      console.error("Elementet för lobbylistan kunde inte hittas.");
+    }
+  };
+
   // Listen to GameTime when to players want to play
   socket.on("GameTime", (message: GameTimeMessage) => {
     handleConnectionForGame(message);
+   
   });
 
   // Skapa ett nytt listelement för att visa spelarens nickname
@@ -225,29 +257,48 @@ moveOnwaitRoomButtonEl.addEventListener("click", (e) => {
  */
 
 // lyssna efter att servern emittar "positionVirus", anropa sedan showVirus()
-socket.on("positionVirus", () => {
-  showVirus();
+socket.on("positionVirus", ( x: number, y: number ) => {
+  console.log("Slumpad virusposition:", x,y);
+
+  showVirus(x,y);
 });
 
-function getRandomInt(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
 
-function showVirus() {
-  const x = getRandomInt(1, 10);
-  const y = getRandomInt(1, 10);
+function showVirus(x:number, y:number) {
   const virusImg = document.createElement("img");
-  virusImg.src = "/src/assets/Images/green-virus.png";
-  virusImg.alt = "ugly green virus";
+  virusImg.src ="/src/assets/Images/virus.png"
+  virusImg.alt ="ugly green virus";
   virusImg.setAttribute("id", "virusImage");
+  console.log("bild", virusImg)
+
   virusImg.style.gridColumn = x.toString();
-  virusImg.style.gridColumn = y.toString();
-  // append image to the grid
-  const gameBoard: HTMLElement | null = document.getElementById("gameBoard");
+  virusImg.style.gridRow = y.toString();
+
+
+  // Appendera bilden till spelbrädet
+  const gameBoard = document.getElementById("gameBoard");
   if (!gameBoard) {
     console.error("unable to find gameBoard element");
   } else {
     gameBoard.appendChild(virusImg);
+  }
+
+  // Gör bilden klickbar genom att lägga till en 'click'-händelselyssnare
+  virusImg.addEventListener("click", function() {
+    console.log("Virus klickad!");
+    
+    socket.emit("virusClick", nickName);
+    removeVirus();
+  });
+
+
+}
+
+// Funktion för att ta bort viruset
+function removeVirus() {
+  const virusImg = document.getElementById("virusImage");
+  if (virusImg) {
+    virusImg.remove();
   }
 }
 
@@ -257,8 +308,9 @@ socket.on("newRound", (round: number) => {
   roundCounter.textContent = `Round: ${round}`;
 });
 
-/*
 
+
+/*
 //Carros klocka
 
 // Funktion för att starta en timer
@@ -305,9 +357,25 @@ window.addEventListener("DOMContentLoaded", () => {
     startTimer(opponentTimeElement);
   }
 });
-*/
 
+*/
 socket.on("winnerOfRound", (winner) => {
   //vinnaren skickas hit - kod här för att öka rätt poängsiffra
-  console.log("Vinnaren av rundan är: ", winner);
+  console.log("Vinnaren av rundan är: ", winner)
+})
+
+// Lyssna efter uppdateringar från servern
+socket.on("updateScore", (data) => {
+  const { highscore } = data;
+
+  // Uppdatera highscore-listan med den senaste highscoren
+  if (highscore !== null) {
+    const { player, score } = highscore;
+    const highscoreListElement = document.getElementById("highscore-list");
+    if (highscoreListElement) {
+      highscoreListElement.innerHTML = `<h2>Highscore</h2><p>${player} - ${score}</p>`;
+    }
+  } else {
+    console.log("No highscore available");
+  }
 });
