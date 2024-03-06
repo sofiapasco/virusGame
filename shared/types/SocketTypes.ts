@@ -5,7 +5,7 @@ export interface ServerToClientEvents {
   JoinTheGame: (nickename: string) => void;
   GameTime: (message: GameTimeMessage) => void;
   UpdateLobby: (playerNames: string[]) => void;
-  positionVirus: () => void;
+  positionVirus: (data: VirusPosition) => void;
   clickResponseTime: (elapsedTime: number) => void;
   newRound: (round: number) => void;
   winnerOfRound: (winner: string) => void;
@@ -48,6 +48,10 @@ export interface User {
   nickname: string;
   roomId: string;
 }
+export interface VirusPosition {
+  x: number;
+  y: number;
+}
 
 export interface GameTimeMessage {
   opponent: string;
@@ -79,4 +83,9 @@ export interface UserJoinResponse {
   success: boolean;
   room: RoomWithUsers | null;
   nicknames: string[];
+}
+
+export interface PlayerReaction {
+  clicked: boolean;
+  reactionTime?: number; // Markera som valfri eftersom den sätts efter klick
 }

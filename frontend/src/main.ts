@@ -4,6 +4,7 @@ import {
   ServerToClientEvents,
   GameTimeMessage,
   UserJoinResponse,
+  VirusPosition
 } from "@shared/types/SocketTypes";
 import "./assets/scss/style.scss";
 
@@ -257,22 +258,22 @@ moveOnwaitRoomButtonEl.addEventListener("click", (e) => {
  */
 
 // lyssna efter att servern emittar "positionVirus", anropa sedan showVirus()
-socket.on("positionVirus", () => {
-  console.log("Slumpad virusposition:");
+socket.on("positionVirus", (data: VirusPosition) => {
+  console.log("Slumpad virusposition:"),data.x, data.y;
 
-  showVirus();
+  showVirus(data.x, data.y);
 });
 
 
-function showVirus() {
+function showVirus(x: number, y: number) {
   const virusImg = document.createElement("img");
   virusImg.src ="/src/assets/Images/virus.png"
   virusImg.alt ="ugly green virus";
   virusImg.setAttribute("id", "virusImage");
   console.log("bild", virusImg)
 
-  virusImg.style.gridColumn = toString();
-  virusImg.style.gridRow = toString();
+virusImg.style.gridColumnStart = x.toString();
+virusImg.style.gridRowStart = y.toString();
 
 
   // Appendera bilden till spelbrädet
@@ -304,9 +305,10 @@ function removeVirus() {
 
 //Listen to a new round
 socket.on("newRound", (round: number) => {
-  const roundCounter = document.getElementById("round") as HTMLTitleElement;
+  const roundCounter = document.getElementById("round") as HTMLElement;
   roundCounter.textContent = `Round: ${round}`;
 });
+
 
 
 

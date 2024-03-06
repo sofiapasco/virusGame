@@ -9,6 +9,7 @@ import {
 	ReactionTimes,
 	UserJoinResponse,
 	RoomWithUsers,
+	PlayerReaction
 } from "@shared/types/SocketTypes";
 import prisma from "../prisma";
 
@@ -26,6 +27,7 @@ let waitingPlayers: WaitingPlayerExtended[] = [];
 // Antal rundor
 let roundCount = 0;
 const totalRounds = 10;
+let playerReactions: Record<string, PlayerReaction> = {};
 
 // Your startGame function now checks if all players are ready before starting
 const startGame = async () => {
@@ -78,7 +80,9 @@ export const handleConnection = (
 	//socket.broadcast.emit("otherPlayerJoined", nickname);
 
 		// När alla användare har anslutit och spelet har startat, skicka "newRound" händelsen till klienten
+		console.log(`Client connected: ${socket.id}`);
 		socket.emit("newRound", roundCount + 1);
+		emitVirusPosition()
 
 
 
@@ -86,29 +90,29 @@ export const handleConnection = (
 		const nicknames: string[] = waitingPlayers.map(
 			(player) => player.nickname
 		);
-/*
-		function getRandomInt(min: number, max: number): number {
-			min = Math.ceil(min);
-			max = Math.floor(max);
-			return Math.floor(Math.random() * (max - min + 1)) + min;
-		}
-*/
-		if (waitingPlayers.length >= 2) {
-/*
-			  // Fördröj slumpningen av koordinater med 1,5 till 10 sekunder
-			  const delay = getRandomInt(1500, 10000);
-			  setTimeout(() => {
-				  // Slumpa x- och y-koordinater
-				  const x = getRandomInt(1, 10);
-				  const y = getRandomInt(1, 10);
 
-				  // Skicka koordinaterna till klienten
-				  io.emit("positionVirus",  x, y );
-			  }, delay);
-*/
+		if (waitingPlayers.length === 2) {
+			io.emit("UpdateLobby", nicknames);
+
 		}
 
-		io.emit("UpdateLobby", nicknames);
+	function emitVirusPosition() {
+		// Slumpa fram en position
+		const x = Math.floor(Math.random() * 10) + 1; // Exempel: x mellan 1 och 10
+		const y = Math.floor(Math.random() * 10) + 1; // Exempel: y mellan 1 och 10
+
+		console.log(`Emitting virus position: x=${x}, y=${y}`);
+		// Sänd virusposition till alla anslutna klienter
+		socket.emit("positionVirus", { x, y });
+
+	}
+
+	io.on("connection", (socket) => {
+		console.log(`Client connected: ${socket.id}`);
+
+
+	});
+
 
 		const room: RoomWithUsers = {
 			id: "The id",
@@ -134,11 +138,27 @@ export const handleConnection = (
 			// Check if all players are ready and start the game
 			if (waitingPlayers.every((p) => p.isReady)) {
 				startGame();
-				socket.emit("positionVirus");
+
+
 
 			}
 		}
 	});
+
+	function emitVirusPosition() {
+		// Slumpa fram en position
+		const x = Math.floor(Math.random() * 10) + 1; // Exempel: x mellan 1 och 10
+		const y = Math.floor(Math.random() * 10) + 1; // Exempel: y mellan 1 och 10
+
+		console.log(`Emitting virus position: x=${x}, y=${y}`);
+		// Sänd virusposition till alla anslutna klienter
+		io.emit("positionVirus", { x, y });
+	}
+
+	io.on("connection", (socket) => {
+		console.log(`Client connected: ${socket.id}`);
+	});
+
 
 // Carolins - Mäta spelarens reaktionstid vid ett klick.
 
@@ -191,16 +211,31 @@ export const handleConnection = (
 
 // Lyssna efter händelsen "virusClick" från klienten
 socket.on("virusClick", (nickname) => {
-
-	// Till exempel:
 	const reactionTime = Date.now() - startTime;
 	console.log(`Spelaren ${nickname} klickade på viruset! Reaktionstid:`, reactionTime);
 
-	// Skicka tillbaka reaktionstiden till klienten om det behövs
-	 socket.emit("clickResponseTime", reactionTime);
+	// Uppdatera spelarens reaktionstid och klickstatus
+    playerReactions[nickname] = { clicked: true, reactionTime: reactionTime };
 
+	// Skicka tillbaka reaktionstiden till klienten om det behövs
+	 io.emit("clickResponseTime", reactionTime);
 	 socket.emit("removeVirus");
+
+	 if (Object.keys(playerReactions).length == 2 && Object.values(playerReactions).every(player => player.clicked)) {
+        console.log("Alla spelare har klickat. Förbereder att starta nästa runda...");
+        setTimeout(() => {
+            startNextRound(); // Ge lite fördröjning innan nästa runda startar
+        }, 2000); // 2 sekunders fördröjning till nästa runda
+    }
+
+
+
   });
+
+  function startNextRound() {
+    playerReactions = {}; // Återställ reaktionerna för nästa runda
+    emitVirusPosition(); // Antag att detta sänder ut en ny virusposition
+}
 
 	// Carolin - Jämför tid och utse rundans vinnare
 	const compareReactionTime = () => {

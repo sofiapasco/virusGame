@@ -82,14 +82,19 @@ body {
 }
 
 #gameBoard {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr); /* Skapar 10 kolumner */
+  grid-template-rows: repeat(10, 1fr); /* Skapar 10 rader */
+  gap: 5px; /* Valbart: Lägger till mellanrum mellan grid-celler */
   border: 2px solid black;
   background-color: lightgrey;
   height: 80vh;
   width: 70vw;
   margin-left: 3vw;
   cursor: grab;
-  position: relative; //behövs för att grid ska läggas relativt till gameBoard
+  position: relative;
 }
+
 
 .grid-wrapper {
   top: 0;
