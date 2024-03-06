@@ -381,3 +381,30 @@ socket.on("updateScore", (data) => {
     console.log("No highscore available");
   }
 });
+
+
+
+// Carolins
+socket.on("winnerOfRound", (winner) => {  //vinnaren ska skickas hit när de spelat
+  // kod här för att öka rätt poängsiffra
+  const player1 = "" //ersätt "" med en user från databasen
+  const player2 = "" //ersätt "" med en user från databasen
+  const player1ScoreEl =  document.getElementById("player1-score")
+  const player2ScoreEl =  document.getElementById("player2-score")
+
+  if (player1ScoreEl && player2ScoreEl) {
+  let player1Score = parseInt(player1ScoreEl.innerText);
+  let player2Score = parseInt(player2ScoreEl.innerText);
+
+  if (winner === player1) {  
+   player1Score ++;
+   player1ScoreEl.innerText = player1Score.toString(); 
+  } else if (winner === player2) {
+    player2Score ++;
+    player2ScoreEl.innerText = player2Score.toString(); 
+  } else {
+    console.log("winner not found")
+  }
+  console.log("winner of round is: ", winner)
+}
+});
