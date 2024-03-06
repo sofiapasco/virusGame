@@ -125,16 +125,21 @@ body {
   background-color: rgb(192, 180, 172);
 }
 
+#score-wrapper {
+  font-size: xx-large;
+}
+
+#your-score,
+#opponent-score {
+  font-size: xx-large;
+}
+
 #your-name {
   margin-top: 20px;
 }
 
 #opponent-name {
   margin-top: 20px;
-}
-
-.score {
-  font-size: xx-large;
 }
 
 .blue {
