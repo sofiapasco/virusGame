@@ -25,64 +25,6 @@ let playerReactions: Record<string, PlayerReaction> = {};
 let gameStarted = false;
 
 
-export const handleConnection = (
-	socket: Socket<ClientToServerEvents, ServerToClientEvents>,
-	io: Server<ClientToServerEvents, ServerToClientEvents>
-) => {
-	debug("🙋 A user connected", socket.id);
-
-	socket.on("disconnect", () => {
-		// Ta bort användaren från waitingPlayers baserat på socket.id
-		waitingPlayers = waitingPlayers.filter(
-			(player) => player.socketId !== socket.id
-		);
-		debug(`User disconnected, removed from waitingPlayers: ${socket.id}`);
-	});
-
-
-export const handleConnection = (
-	socket: Socket<ClientToServerEvents, ServerToClientEvents>,
-	io: Server<ClientToServerEvents, ServerToClientEvents>
-) => {
-	debug("🙋 A user connected", socket.id);
-
-	socket.on("disconnect", () => {
-		// Ta bort användaren från waitingPlayers baserat på socket.id
-		waitingPlayers = waitingPlayers.filter(
-			(player) => player.socketId !== socket.id
-		);
-		debug(`User disconnected, removed from waitingPlayers: ${socket.id}`);
-	});
-
-// Your startGame function now checks if all players are ready before starting
-const startGame = async () => {
-	// Check if all players are ready before starting the game
-	if (waitingPlayers.every((player) => player.isReady)) {
-		try {
-			// Your existing logic to create users in the database goes here
-			//			for (const player of waitingPlayers) {
-			//				await prisma.user.create({
-			//					data: {
-			//
-			//			nickname: player.nickname,
-			//			scores: [],
-			//		},
-			//	});
-			//}
-			//console.log(player.data);
-			// Start round logic or any other start game logic should go here
-			// After starting the game, reset the waitingPlayers array
-			gameStarted = true;
-			waitingPlayers = [];
-			roundCount = 1; // Börja från runda 1
-			io.emit("newRound", roundCount);
-		} catch (error) {
-			debug("Error creating user:", error);
-		}
-	} else {
-		// Handle the case where not all players are ready (if necessary)
-	}
-};
 
 export const handleConnection = (
 	socket: Socket<ClientToServerEvents, ServerToClientEvents>,
@@ -113,7 +55,25 @@ export const handleConnection = (
 			});
 			return;
 		}
+/*
+		// Your startGame function now checks if all players are ready before starting
+	const startGame = async () => {
+	// Check if all players are ready before starting the game
+	if (waitingPlayers.every((player) => player.isReady)) {
+		try {
 
+			gameStarted = true;
+			waitingPlayers = [];
+			roundCount = 1; // Börja från runda 1
+			io.emit("newRound", roundCount);
+		} catch (error) {
+			debug("Error creating user:", error);
+		}
+	} else {
+		// Handle the case where not all players are ready (if necessary)
+	}
+};
+*/
 		// Lägg till spelaren i arrayen av väntande spelare
 		waitingPlayers.push({ socketId: socket.id, nickname });
 		debug("waitingPlayers: %o", waitingPlayers);
@@ -229,7 +189,6 @@ export const handleConnection = (
 socket.on("virusClick", (nickname) => {
 	const reactionTime = Date.now() - startTime;
 	console.log(`Spelaren ${nickname} klickade på viruset! Reaktionstid:`, reactionTime);
-
 	// Uppdatera spelarens reaktionstid och klickstatus
     playerReactions[nickname] = { clicked: true, reactionTime: reactionTime };
 
@@ -272,6 +231,20 @@ const endGame = () => {
 
 	io.emit("gameEnded", gameEndedData);
   };
+
+  function emitVirusPosition() {
+	// Slumpa fram en position
+	const x = Math.floor(Math.random() * 10) + 1; // Exempel: x mellan 1 och 10
+	const y = Math.floor(Math.random() * 10) + 1; // Exempel: y mellan 1 och 10
+
+	console.log(`Emitting virus position: x=${x}, y=${y}`);
+	// Sänd virusposition till alla anslutna klienter
+	io.emit("positionVirus", { x, y });
+}
+
+io.on("connection", (socket) => {
+	console.log(`Client connected: ${socket.id}`);
+});
 
 	// Carolin - Jämför tid och utse rundans vinnare
 	const compareReactionTime = () => {
