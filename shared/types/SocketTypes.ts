@@ -17,8 +17,7 @@ export interface ServerToClientEvents {
   OtherPlayerJoined: (response: UserJoinResponse) => void;
   userJoined: (username: string, timestamp: number) => void;
   readyToStart: () => void;
-  getRandomInt:(x: number, y: number) => void;
-
+  gameEnded: (data: GameEndedData) => void;
 }
 
 // Events emitted by the client to the server
@@ -88,4 +87,14 @@ export interface UserJoinResponse {
 export interface PlayerReaction {
   clicked: boolean;
   reactionTime?: number; // Markera som valfri eftersom den sätts efter klick
+}
+
+export interface GameEndedData {
+  winner: string;
+  scores: {
+      Player1: number;
+      Player2: number;
+  };
+  roundsPlayed: number;
+  gameDuration: number;
 }

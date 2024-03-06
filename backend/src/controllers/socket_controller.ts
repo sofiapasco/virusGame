@@ -8,7 +8,8 @@ import {
 	WaitingPlayer,
 	UserJoinResponse,
 	RoomWithUsers,
-	PlayerReaction
+	PlayerReaction,
+	GameEndedData
 } from "@shared/types/SocketTypes";
 import prisma from "../prisma";
 
@@ -29,7 +30,22 @@ const totalRounds = 10;
 let playerReactions: Record<string, PlayerReaction> = {};
 let gameStarted = false;
 
-// Your startGame function now checks if all players are ready before starting
+
+export const handleConnection = (
+	socket: Socket<ClientToServerEvents, ServerToClientEvents>,
+	io: Server<ClientToServerEvents, ServerToClientEvents>
+) => {
+	debug("🙋 A user connected", socket.id);
+
+	socket.on("disconnect", () => {
+		// Ta bort användaren från waitingPlayers baserat på socket.id
+		waitingPlayers = waitingPlayers.filter(
+			(player) => player.socketId !== socket.id
+		);
+		debug(`User disconnected, removed from waitingPlayers: ${socket.id}`);
+	});
+
+	// Your startGame function now checks if all players are ready before starting
 const startGame = async () => {
 	// Check if all players are ready before starting the game
 	if (waitingPlayers.every((player) => player.isReady)) {
@@ -49,6 +65,8 @@ const startGame = async () => {
 			// After starting the game, reset the waitingPlayers array
 			gameStarted = true;
 			waitingPlayers = [];
+			roundCount = 1; // Börja från runda 1
+			io.emit("newRound", roundCount);
 		} catch (error) {
 			debug("Error creating user:", error);
 		}
@@ -56,20 +74,6 @@ const startGame = async () => {
 		// Handle the case where not all players are ready (if necessary)
 	}
 };
-
-export const handleConnection = (
-	socket: Socket<ClientToServerEvents, ServerToClientEvents>,
-	io: Server<ClientToServerEvents, ServerToClientEvents>
-) => {
-	debug("🙋 A user connected", socket.id);
-
-	socket.on("disconnect", () => {
-		// Ta bort användaren från waitingPlayers baserat på socket.id
-		waitingPlayers = waitingPlayers.filter(
-			(player) => player.socketId !== socket.id
-		);
-		debug(`User disconnected, removed from waitingPlayers: ${socket.id}`);
-	});
 
 	// Lyssna efter anslutning till "JoinTheGame"-händelsen
 	socket.on("JoinTheGame", (nickname: string, callback) => {
@@ -98,25 +102,11 @@ export const handleConnection = (
 
 		if (waitingPlayers.length === 2) {
 			io.emit("UpdateLobby", nicknames);
+			emitVirusPosition();
+
 
 		}
 
-	function emitVirusPosition() {
-		// Slumpa fram en position
-		const x = Math.floor(Math.random() * 10) + 1; // Exempel: x mellan 1 och 10
-		const y = Math.floor(Math.random() * 10) + 1; // Exempel: y mellan 1 och 10
-
-		console.log(`Emitting virus position: x=${x}, y=${y}`);
-		// Sänd virusposition till alla anslutna klienter
-		socket.emit("positionVirus", { x, y });
-
-	}
-
-	io.on("connection", (socket) => {
-		console.log(`Client connected: ${socket.id}`);
-
-
-	});
 
 
 		const room: RoomWithUsers = {
@@ -143,7 +133,6 @@ export const handleConnection = (
 			// Check if all players are ready and start the game
 			if (waitingPlayers.every((p) => p.isReady)) {
 				startGame();
-
 
 
 			}
@@ -222,6 +211,7 @@ socket.on("virusClick", (nickname) => {
 	 io.emit("clickResponseTime", reactionTime);
 	 socket.emit("removeVirus");
 
+
 	 if (Object.keys(playerReactions).length == 2 && Object.values(playerReactions).every(player => player.clicked)) {
         console.log("Alla spelare har klickat. Förbereder att starta nästa runda...");
         setTimeout(() => {
@@ -229,14 +219,33 @@ socket.on("virusClick", (nickname) => {
         }, 2000); // 2 sekunders fördröjning till nästa runda
     }
 
-
-
   });
 
-  function startNextRound() {
+  const startNextRound = () => {
+    roundCount++; // Öka rundräknaren
+    if (roundCount > totalRounds) {
+        endGame(); // Hantera spelets slut om max rundor nåtts
+        return;
+    }
     playerReactions = {}; // Återställ reaktionerna för nästa runda
-    emitVirusPosition(); // Antag att detta sänder ut en ny virusposition
-}
+    emitVirusPosition(); // Sänder ut en ny virusposition
+    io.emit("newRound", roundCount); // Meddela alla spelare att en ny runda börjar
+};
+
+// Definiera funktionen för att avsluta spelet och meddela spelarna
+const endGame = () => {
+	const gameEndedData: GameEndedData = {
+	  winner: "Player1", // Exempeldata, du skulle bestämma detta baserat på ditt spel
+	  scores: {
+		"Player1": 10,
+		"Player2": 8,
+	  },
+	  roundsPlayed: roundCount,
+	  gameDuration: 600000,
+	};
+
+	io.emit("gameEnded", gameEndedData);
+  };
 
 	// Carolin - Jämför tid och utse rundans vinnare
 	const compareReactionTime = () => {
