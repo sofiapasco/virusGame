@@ -6,7 +6,6 @@ import {
 	ClientToServerEvents,
 	ServerToClientEvents,
 	WaitingPlayer,
-	UserJoinResponse,
 	RoomWithUsers,
 	PlayerReaction,
 	GameEndedData
@@ -18,12 +17,16 @@ const debug = Debug("backend:socket_controller");
 
 let waitingPlayers: WaitingPlayer[] = [];
 
-// Antal rundor
+
 let roundCount = 0;
 const totalRounds = 10;
 let playerReactions: Record<string, PlayerReaction> = {};
 let gameStarted = false;
-
+let roundStarted = Date.now();
+let scores = {
+	player1: 0,
+	player2: 0
+  };
 
 
 export const handleConnection = (
@@ -86,6 +89,9 @@ export const handleConnection = (
 			var roomWithUsers = await initiateGameIfReady(waitingPlayers);
 			io.emit("UpdateLobby", nicknames);
 			waitingPlayers = [];
+			roundCount = 1;
+			emitVirusPosition();
+			io.emit("newRound", roundCount);
 
 			callback({
 				success: true,
@@ -146,7 +152,7 @@ export const handleConnection = (
 	let clicked: boolean = false;
 	let player1Time: { reactionTime: number; playerName: string } | null = null;
 	let player2Time: { reactionTime: number; playerName: string } | null = null;
-
+/*
 	const startTimer = () => {
 		//startTimer() ska anropas med samma delay som viruset dyker upp
 		startTime = Date.now();
@@ -184,53 +190,68 @@ export const handleConnection = (
 		// När tiden skickats, kör compareReactionTime()
 		compareReactionTime();
 	};
-
-// Lyssna efter händelsen "virusClick" från klienten
+*/
 socket.on("virusClick", (nickname) => {
-	const reactionTime = Date.now() - startTime;
-	console.log(`Spelaren ${nickname} klickade på viruset! Reaktionstid:`, reactionTime);
-	// Uppdatera spelarens reaktionstid och klickstatus
-    playerReactions[nickname] = { clicked: true, reactionTime: reactionTime };
 
-	// Skicka tillbaka reaktionstiden till klienten om det behövs
-	 io.emit("clickResponseTime", reactionTime);
-	 socket.emit("removeVirus");
+	if (!gameStarted || roundCount > totalRounds) return;
+
+	// Registrera reaktionstid endast om spelaren inte redan har klickat under denna runda
+	if (!playerReactions[nickname]) {
+	  const reactionTime = Date.now() - roundStarted;
+	  playerReactions[nickname] = { clicked: true, reactionTime: reactionTime };
 
 
-	 if (Object.keys(playerReactions).length == 2 && Object.values(playerReactions).every(player => player.clicked)) {
-        console.log("Alla spelare har klickat. Förbereder att starta nästa runda...");
-        setTimeout(() => {
-            startNextRound(); // Ge lite fördröjning innan nästa runda startar
-        }, 2000); // 2 sekunders fördröjning till nästa runda
+        console.log(`Spelaren ${nickname} klickade på viruset! Reaktionstid:`, reactionTime);
+
+        // Meddela alla klienter om spelarens reaktionstid
+        io.emit("clickResponseTime", reactionTime, nickname);
+
+        // Kontrollera om alla spelare har reagerat
+        if (Object.keys(playerReactions).length == Object.keys(scores).length) {
+            console.log("Alla spelare har klickat. Förbereder att starta nästa runda...");
+            setTimeout(() => {
+                startNextRound(); // Starta nästa runda efter en kort fördröjning
+            }, 2000); // 2 sekunders fördröjning till nästa runda
+        }
     }
+});
 
-  });
-
-  const startNextRound = () => {
-    roundCount++; // Öka rundräknaren
-    if (roundCount > totalRounds) {
-        endGame(); // Hantera spelets slut om max rundor nåtts
-        return;
-    }
-    playerReactions = {}; // Återställ reaktionerna för nästa runda
-    emitVirusPosition(); // Sänder ut en ny virusposition
-    io.emit("newRound", roundCount); // Meddela alla spelare att en ny runda börjar
-};
+function startNextRound() {
+	if (roundCount < totalRounds) {
+	  roundCount++;
+	  playerReactions = {}; // Nollställ reaktionstider för nästa runda
+	  roundStarted = Date.now(); // Uppdatera starttiden för den nya rundan
+	  emitVirusPosition();
+	  io.emit("newRound", roundCount);
+	} else {
+	  endGame(); // Avsluta spelet om max antal rundor har nåtts
+	}
+  }
 
 // Definiera funktionen för att avsluta spelet och meddela spelarna
 const endGame = () => {
-	const gameEndedData: GameEndedData = {
-	  winner: "Player1", // Exempeldata, du skulle bestämma detta baserat på ditt spel
-	  scores: {
-		"Player1": 10,
-		"Player2": 8,
-	  },
+	const winner = scores.player1 > scores.player2 ? 'player1' : (scores.player1 < scores.player2 ? 'player2' : 'tie');
+
+	const gameEndedData = {
+	  winner: winner === 'tie' ? 'Oavgjort' : winner,
+	  scores: scores, // Antag att detta är formatet du redan använder
 	  roundsPlayed: roundCount,
-	  gameDuration: 600000,
+
 	};
 
-	io.emit("gameEnded", gameEndedData);
+	console.log("Game ended", gameEndedData);
+
+	resetGameState();
   };
+
+  function resetGameState() {
+	gameStarted = false;
+	waitingPlayers = [];
+	playerReactions = {};
+	roundCount = 0;
+	scores = { player1: 0, player2: 0 }; // Återställ poängen
+	roundStarted = Date.now(); // Återställ starttiden för nästa spel
+  }
 
   function emitVirusPosition() {
 	// Slumpa fram en position

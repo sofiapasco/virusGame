@@ -4,7 +4,8 @@ import {
   ServerToClientEvents,
   GameTimeMessage,
   UserJoinResponse,
-  VirusPosition
+  VirusPosition,
+  ScoreData
 } from "@shared/types/SocketTypes";
 import "./assets/scss/style.scss";
 
@@ -292,8 +293,8 @@ virusImg.style.gridRowStart = y.toString();
     removeVirus();
   });
 
-
 }
+
 
 // Funktion för att ta bort viruset
 function removeVirus() {
@@ -303,13 +304,39 @@ function removeVirus() {
   }
 }
 
-//Listen to a new round
-socket.on("newRound", (round: number) => {
-  const roundCounter = document.getElementById("round") as HTMLElement;
-  roundCounter.textContent = `Round: ${round}`;
+
+socket.on("gameEnded", (data) => {
+  console.log("Spelet slutade. Vinnare:", data.winner, "Poäng:", data.scores);
+
+  // Uppdatera UI med vinnaren
+  const winnerElement = document.getElementById("game-winner");
+  if (winnerElement) {
+      winnerElement.textContent = data.winner; // Visar vinnarens namn
+  }
+
+  // Antag att 'data.scores' är ett objekt med poäng för 'player1' och 'player2', till exempel: { player1: 3, player2: 2 }
+  const player1ScoreElement = document.getElementById("player1-score");
+  const player2ScoreElement = document.getElementById("player2-score");
+
+  if (player1ScoreElement && player2ScoreElement) {
+      player1ScoreElement.textContent = data.scores.Player1.toString(); // Uppdaterar spelare 1:s poäng
+      player2ScoreElement.textContent = data.scores.Player2.toString(); // Uppdaterar spelare 2:s poäng
+  }
 });
 
 
+
+//Listen to a new round
+socket.on("newRound", (round) => {
+  const roundCounter = document.getElementById("round");
+    if (roundCounter) roundCounter.textContent = `Round: ${round}`;
+});
+
+socket.on("winnerOfRound", (winner) => {
+  // Uppdatera UI med vinnaren av rundan
+  console.log("Vinnaren av rundan är:", winner);
+ 
+});
 
 
 /*
@@ -367,22 +394,27 @@ socket.on("winnerOfRound", (winner) => {
 })
 
 // Lyssna efter uppdateringar från servern
-socket.on("updateScore", (data) => {
-  const { highscore } = data;
+socket.on("updateScore", (data:ScoreData) => {
+  if (data.scores) {
+    const player1ScoreEl = document.getElementById("player1-score");
+    const player2ScoreEl = document.getElementById("player2-score");
 
-  // Uppdatera highscore-listan med den senaste highscoren
-  if (highscore !== null) {
-    const { player, score } = highscore;
+    if (player1ScoreEl && player2ScoreEl) {
+      player1ScoreEl.textContent = data.scores.player1.toString();
+      player2ScoreEl.textContent = data.scores.player2.toString();
+    }
+
+  // Uppdatera highscore-listan
+  if (data.highscore) {
+    const { player, score } = data.highscore;
     const highscoreListElement = document.getElementById("highscore-list");
     if (highscoreListElement) {
       highscoreListElement.innerHTML = `<h2>Highscore</h2><p>${player} - ${score}</p>`;
     }
-  } else {
-    console.log("No highscore available");
   }
-});
+}});
 
-
+/*
 
 // Carolins
 socket.on("winnerOfRound", (winner) => {  //vinnaren ska skickas hit när de spelat
@@ -408,3 +440,5 @@ socket.on("winnerOfRound", (winner) => {  //vinnaren ska skickas hit när de spe
   console.log("winner of round is: ", winner)
 }
 });
+
+*/

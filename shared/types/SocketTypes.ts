@@ -6,14 +6,11 @@ export interface ServerToClientEvents {
   GameTime: (message: GameTimeMessage) => void;
   UpdateLobby: (playerNames: string[]) => void;
   positionVirus: (data: VirusPosition) => void;
-  clickResponseTime: (elapsedTime: number) => void;
+  clickResponseTime: (elapsedTime: number, nickename:string) => void;
   newRound: (round: number) => void;
   winnerOfRound: (winner: string) => void;
   removeVirus: () => void;
-  updateScore: (data: {
-    latestMatches: MatchResult[];
-    highscore: { player: string; score: number } | null;
-  }) => void;
+  updateScore: (data: ScoreData) => void;
   OtherPlayerJoined: (response: UserJoinResponse) => void;
   userJoined: (username: string, timestamp: number) => void;
   readyToStart: () => void;
@@ -27,6 +24,7 @@ export interface ClientToServerEvents {
     callback: (response: UserJoinResponse) => void
   ) => void;
   virusClick: (nickname: string) => void;
+
 
   getRoomList: (callback: (rooms: Room[]) => void) => void;
   userJoinRequest: (
@@ -96,5 +94,14 @@ export interface GameEndedData {
       Player2: number;
   };
   roundsPlayed: number;
-  gameDuration: number;
+}
+export interface ScoreData {
+  scores?: {
+    player1: number;
+    player2: number;
+  };
+  highscore?: {
+    player: string;
+    score: number;
+  };
 }
