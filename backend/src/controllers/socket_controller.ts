@@ -6,9 +6,9 @@ import {
 	ClientToServerEvents,
 	ServerToClientEvents,
 	WaitingPlayer,
-	UserJoinResponse,
 	RoomWithUsers,
-	User,
+	PlayerReaction,
+	GameEndedData
 } from "@shared/types/SocketTypes";
 import prisma from "../prisma";
 
@@ -17,12 +17,18 @@ const debug = Debug("backend:socket_controller");
 
 let waitingPlayers: WaitingPlayer[] = [];
 
-// Antal rundor
+
 let roundCount = 0;
 const totalRounds = 10;
+let playerReactions: Record<string, PlayerReaction> = {};
 let gameStarted = false;
+let roundStarted = Date.now();
+let scores = {
+	player1: 0,
+	player2: 0
+  };
 
-// Funktion som initierar ett nytt spel om två spelare är redo
+
 export const handleConnection = (
 	socket: Socket<ClientToServerEvents, ServerToClientEvents>,
 	io: Server<ClientToServerEvents, ServerToClientEvents>
@@ -52,7 +58,25 @@ export const handleConnection = (
 			});
 			return;
 		}
+/*
+		// Your startGame function now checks if all players are ready before starting
+	const startGame = async () => {
+	// Check if all players are ready before starting the game
+	if (waitingPlayers.every((player) => player.isReady)) {
+		try {
 
+			gameStarted = true;
+			waitingPlayers = [];
+			roundCount = 1; // Börja från runda 1
+			io.emit("newRound", roundCount);
+		} catch (error) {
+			debug("Error creating user:", error);
+		}
+	} else {
+		// Handle the case where not all players are ready (if necessary)
+	}
+};
+*/
 		// Lägg till spelaren i arrayen av väntande spelare
 		waitingPlayers.push({ socketId: socket.id, nickname });
 		debug("waitingPlayers: %o", waitingPlayers);
@@ -65,6 +89,9 @@ export const handleConnection = (
 			var roomWithUsers = await initiateGameIfReady(waitingPlayers);
 			io.emit("UpdateLobby", nicknames);
 			waitingPlayers = [];
+			roundCount = 1;
+			emitVirusPosition();
+			io.emit("newRound", roundCount);
 
 			callback({
 				success: true,
@@ -125,7 +152,7 @@ export const handleConnection = (
 	let clicked: boolean = false;
 	let player1Time: { reactionTime: number; playerName: string } | null = null;
 	let player2Time: { reactionTime: number; playerName: string } | null = null;
-
+/*
 	const startTimer = () => {
 		//startTimer() ska anropas med samma delay som viruset dyker upp
 		startTime = Date.now();
@@ -163,6 +190,82 @@ export const handleConnection = (
 		// När tiden skickats, kör compareReactionTime()
 		compareReactionTime();
 	};
+*/
+socket.on("virusClick", (nickname) => {
+
+	if (!gameStarted || roundCount > totalRounds) return;
+
+	// Registrera reaktionstid endast om spelaren inte redan har klickat under denna runda
+	if (!playerReactions[nickname]) {
+	  const reactionTime = Date.now() - roundStarted;
+	  playerReactions[nickname] = { clicked: true, reactionTime: reactionTime };
+
+
+        console.log(`Spelaren ${nickname} klickade på viruset! Reaktionstid:`, reactionTime);
+
+        // Meddela alla klienter om spelarens reaktionstid
+        io.emit("clickResponseTime", reactionTime, nickname);
+
+        // Kontrollera om alla spelare har reagerat
+        if (Object.keys(playerReactions).length == Object.keys(scores).length) {
+            console.log("Alla spelare har klickat. Förbereder att starta nästa runda...");
+            setTimeout(() => {
+                startNextRound(); // Starta nästa runda efter en kort fördröjning
+            }, 2000); // 2 sekunders fördröjning till nästa runda
+        }
+    }
+});
+
+function startNextRound() {
+	if (roundCount < totalRounds) {
+	  roundCount++;
+	  playerReactions = {}; // Nollställ reaktionstider för nästa runda
+	  roundStarted = Date.now(); // Uppdatera starttiden för den nya rundan
+	  emitVirusPosition();
+	  io.emit("newRound", roundCount);
+	} else {
+	  endGame(); // Avsluta spelet om max antal rundor har nåtts
+	}
+  }
+
+// Definiera funktionen för att avsluta spelet och meddela spelarna
+const endGame = () => {
+	const winner = scores.player1 > scores.player2 ? 'player1' : (scores.player1 < scores.player2 ? 'player2' : 'tie');
+
+	const gameEndedData = {
+	  winner: winner === 'tie' ? 'Oavgjort' : winner,
+	  scores: scores, // Antag att detta är formatet du redan använder
+	  roundsPlayed: roundCount,
+
+	};
+
+	console.log("Game ended", gameEndedData);
+
+	resetGameState();
+  };
+
+  function resetGameState() {
+	gameStarted = false;
+	waitingPlayers = [];
+	playerReactions = {};
+	roundCount = 0;
+	scores = { player1: 0, player2: 0 }; // Återställ poängen
+	roundStarted = Date.now(); // Återställ starttiden för nästa spel
+  }
+
+  function emitVirusPosition() {
+	// Slumpa fram en position
+	const x = Math.floor(Math.random() * 10) + 1; // Exempel: x mellan 1 och 10
+	const y = Math.floor(Math.random() * 10) + 1; // Exempel: y mellan 1 och 10
+
+	console.log(`Emitting virus position: x=${x}, y=${y}`);
+	// Sänd virusposition till alla anslutna klienter
+	io.emit("positionVirus", { x, y });
+}
+
+io.on("connection", (socket) => {
+	console.log(`Client connected: ${socket.id}`);
+});
 
 	// Carolin - Jämför tid och utse rundans vinnare
 	const compareReactionTime = () => {

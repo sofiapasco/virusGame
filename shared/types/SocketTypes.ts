@@ -5,19 +5,16 @@ export interface ServerToClientEvents {
   JoinTheGame: (nickename: string) => void;
   GameTime: (message: GameTimeMessage) => void;
   UpdateLobby: (playerNames: string[]) => void;
-  positionVirus: (x: number, y: number) => void;
-  clickResponseTime: (elapsedTime: number) => void;
+  positionVirus: (data: VirusPosition) => void;
+  clickResponseTime: (elapsedTime: number, nickename:string) => void;
   newRound: (round: number) => void;
   winnerOfRound: (winner: string) => void;
   removeVirus: () => void;
-  updateScore: (data: {
-    latestMatches: MatchResult[];
-    highscore: { player: string; score: number } | null;
-  }) => void;
+  updateScore: (data: ScoreData) => void;
   OtherPlayerJoined: (response: UserJoinResponse) => void;
   userJoined: (username: string, timestamp: number) => void;
   readyToStart: () => void;
-  getRandomInt: (x: number, y: number) => void;
+  gameEnded: (data: GameEndedData) => void;
 }
 
 // Events emitted by the client to the server
@@ -27,6 +24,7 @@ export interface ClientToServerEvents {
     callback: (response: UserJoinResponse) => void
   ) => void;
   virusClick: (nickname: string) => void;
+
 
   getRoomList: (callback: (rooms: Room[]) => void) => void;
   userJoinRequest: (
@@ -46,6 +44,10 @@ export interface User {
   id: string;
   nickname: string;
   roomId: string;
+}
+export interface VirusPosition {
+  x: number;
+  y: number;
 }
 
 export interface GameTimeMessage {
@@ -78,4 +80,28 @@ export interface UserJoinResponse {
   success: boolean;
   room: RoomWithUsers | null;
   nicknames: string[];
+}
+
+export interface PlayerReaction {
+  clicked: boolean;
+  reactionTime?: number; // Markera som valfri eftersom den sätts efter klick
+}
+
+export interface GameEndedData {
+  winner: string;
+  scores: {
+      Player1: number;
+      Player2: number;
+  };
+  roundsPlayed: number;
+}
+export interface ScoreData {
+  scores?: {
+    player1: number;
+    player2: number;
+  };
+  highscore?: {
+    player: string;
+    score: number;
+  };
 }

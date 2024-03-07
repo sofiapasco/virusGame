@@ -4,6 +4,8 @@ import {
   ServerToClientEvents,
   GameTimeMessage,
   UserJoinResponse,
+  VirusPosition,
+  ScoreData,
 } from "@shared/types/SocketTypes";
 import "./assets/scss/style.scss";
 
@@ -296,10 +298,10 @@ moveOnwaitRoomButtonEl.addEventListener("click", (e) => {
  */
 
 // lyssna efter att servern emittar "positionVirus", anropa sedan showVirus()
-socket.on("positionVirus", (x: number, y: number) => {
-  console.log("Slumpad virusposition:", x, y);
+socket.on("positionVirus", (data: VirusPosition) => {
+  console.log("Slumpad virusposition:"), data.x, data.y;
 
-  showVirus(x, y);
+  showVirus(data.x, data.y);
 });
 
 function showVirus(x: number, y: number) {
@@ -309,8 +311,8 @@ function showVirus(x: number, y: number) {
   virusImg.setAttribute("id", "virusImage");
   console.log("bild", virusImg);
 
-  virusImg.style.gridColumn = x.toString();
-  virusImg.style.gridRow = y.toString();
+  virusImg.style.gridColumnStart = x.toString();
+  virusImg.style.gridRowStart = y.toString();
 
   // Appendera bilden till spelbrädet
   const gameBoard = document.getElementById("gameBoard");
@@ -337,32 +339,113 @@ function removeVirus() {
   }
 }
 
-//Listen to a new round
-socket.on("newRound", (round: number) => {
-  const roundCounter = document.getElementById("round") as HTMLTitleElement;
-  roundCounter.textContent = `Round: ${round}`;
+socket.on("gameEnded", (data) => {
+  console.log("Spelet slutade. Vinnare:", data.winner, "Poäng:", data.scores);
+
+  // Uppdatera UI med vinnaren
+  const winnerElement = document.getElementById("game-winner");
+  if (winnerElement) {
+    winnerElement.textContent = data.winner; // Visar vinnarens namn
+  }
+
+  // Antag att 'data.scores' är ett objekt med poäng för 'player1' och 'player2', till exempel: { player1: 3, player2: 2 }
+  const player1ScoreElement = document.getElementById("player1-score");
+  const player2ScoreElement = document.getElementById("player2-score");
+
+  if (player1ScoreElement && player2ScoreElement) {
+    player1ScoreElement.textContent = data.scores.Player1.toString(); // Uppdaterar spelare 1:s poäng
+    player2ScoreElement.textContent = data.scores.Player2.toString(); // Uppdaterar spelare 2:s poäng
+  }
 });
 
+//Listen to a new round
+socket.on("newRound", (round) => {
+  const roundCounter = document.getElementById("round");
+  if (roundCounter) roundCounter.textContent = `Round: ${round}`;
+});
+
+socket.on("winnerOfRound", (winner) => {
+  // Uppdatera UI med vinnaren av rundan
+  console.log("Vinnaren av rundan är:", winner);
+});
+
+/*
+//Carros klocka
+
+// Funktion för att starta en timer
+function startTimer(timerElement: HTMLElement): number {
+  let seconds: number = 0;
+  let minutes: number = 0;
+  let hours: number = 0;
+
+  // Uppdatera elementet varje sekund
+  return window.setInterval(() => {
+    seconds++;
+    if (seconds >= 60) {
+      seconds = 0;
+      minutes++;
+      if (minutes >= 60) {
+        minutes = 0;
+        hours++;
+      }
+    }
+
+    // Format tidsträngen med ledande nollor
+    const hoursFormatted: string = hours < 10 ? "0" + hours : hours.toString();
+    const minutesFormatted: string =
+      minutes < 10 ? "0" + minutes : minutes.toString();
+    const secondsFormatted: string =
+      seconds < 10 ? "0" + seconds : seconds.toString();
+
+    // Uppdatera tiden i DOM
+    timerElement.textContent = `${hoursFormatted}:${minutesFormatted}:${secondsFormatted}`;
+  }, 1000);
+}
+
+// Starta klockorna när sidan laddas
+window.addEventListener("DOMContentLoaded", () => {
+  const yourTimeElement: HTMLElement | null =
+    document.getElementById("your-time");
+  const opponentTimeElement: HTMLElement | null =
+    document.getElementById("opponent-time");
+
+  if (yourTimeElement && opponentTimeElement) {
+    // Starta din timer
+    startTimer(yourTimeElement);
+    // Starta motståndarens timer
+    startTimer(opponentTimeElement);
+  }
+});
+
+*/
 socket.on("winnerOfRound", (winner) => {
   //vinnaren skickas hit - kod här för att öka rätt poängsiffra
   console.log("Vinnaren av rundan är: ", winner);
 });
 
 // Lyssna efter uppdateringar från servern
-socket.on("updateScore", (data) => {
-  const { highscore } = data;
+socket.on("updateScore", (data: ScoreData) => {
+  if (data.scores) {
+    const player1ScoreEl = document.getElementById("player1-score");
+    const player2ScoreEl = document.getElementById("player2-score");
 
-  // Uppdatera highscore-listan med den senaste highscoren
-  if (highscore !== null) {
-    const { player, score } = highscore;
-    const highscoreListElement = document.getElementById("highscore-list");
-    if (highscoreListElement) {
-      highscoreListElement.innerHTML = `<h2>Highscore</h2><p>${player} - ${score}</p>`;
+    if (player1ScoreEl && player2ScoreEl) {
+      player1ScoreEl.textContent = data.scores.player1.toString();
+      player2ScoreEl.textContent = data.scores.player2.toString();
     }
-  } else {
-    console.log("No highscore available");
+
+    // Uppdatera highscore-listan
+    if (data.highscore) {
+      const { player, score } = data.highscore;
+      const highscoreListElement = document.getElementById("highscore-list");
+      if (highscoreListElement) {
+        highscoreListElement.innerHTML = `<h2>Highscore</h2><p>${player} - ${score}</p>`;
+      }
+    }
   }
 });
+
+/*
 
 // Carolins
 socket.on("winnerOfRound", (winner) => {
@@ -389,3 +472,5 @@ socket.on("winnerOfRound", (winner) => {
     console.log("winner of round is: ", winner);
   }
 });
+
+*/
