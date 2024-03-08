@@ -213,6 +213,7 @@ function startTimer(timerElement: HTMLElement): void {
     }
 
     const keepRunning = intervalMap.get(timerElement);
+
     if (!keepRunning) {
       clearInterval(interval);
     } else {
@@ -234,22 +235,26 @@ function stopTimer(timerElement: HTMLElement): void {
   // Retrieve the interval ID from the global map
   const intervalId = intervalMap.get(timerElement);
   if (intervalId !== undefined && timerElement !== undefined) {
+    console.log("We stop timer: " + timerElement);
     intervalMap.set(timerElement, false);
-    const timerValue = parseInt(timerElement.innerText, 10);
-    socket.emit("registerClick", timerValue);
   }
-
 }
+
+socket.on("otherRegisterClick", (time) => {
+  console.log("Andra spelarens klick:" + time);
+  console.log("My socket id : " + socket.id);
+  if (opponentTimeElement) {
+    stopTimer(opponentTimeElement);
+    opponentTimeElement.innerText = time.toString().padStart(2, "0");
+  } else {
+    console.error("The opponent's timer element was not found.");
+  }
+});
+
 // Lyssna på uppdateringar från servern om lobbyn
 socket.on("UpdateLobby", (players: string[]) => {
   console.log("Lobby updated with players:", players);
   updateLobby(players);
-});
-
-// På klienten
-socket.on("otherRegisterClick", (time, socketId) => {
-  console.log("andra spelarens klick",time, socketId);
-  stopTimer(timerElement);
 });
 
 // Uppdatera UI för lobbyn med namnen på spelarna
@@ -366,11 +371,11 @@ function removeVirus() {
 
   if (yourTimeElement !== null) {
     stopTimer(yourTimeElement);
+    const timerValue = parseInt(yourTimeElement.innerText, 10);
+    socket.emit("registerClick", timerValue);
   } else {
     console.error("The element #player1-time was not found.");
   }
-
-  //Rapportera till sever tiden
 }
 
 socket.on("gameEnded", (data) => {

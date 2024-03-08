@@ -253,6 +253,7 @@ export const handleConnection = (
 				});
 
 
+
 				console.log("Updated user scores for user with socket ID:",socketId);
 				playerReactions[socketId] = time; // Använd socketId som nyckel för att undvika konflikter
 
@@ -265,6 +266,28 @@ export const handleConnection = (
 
             }
 				socket.broadcast.emit("otherRegisterClick", time, socketId);
+
+				const otherUser = await prisma.user.findFirst({
+					where: {
+						AND: [
+							{
+								roomId: user.roomId, // the user is in the same room
+							},
+							{
+								id: {
+									not: user.id, // the user has a different id
+								},
+							},
+						],
+					},
+				});
+
+				if (otherUser != null) {
+					io.to(otherUser.socketId).emit("otherRegisterClick", time);
+				}
+
+				console.log("Found Other USer");
+				console.log(otherUser);
 			} else {
 				console.log("No user found with socket ID:", socketId);
 			}
