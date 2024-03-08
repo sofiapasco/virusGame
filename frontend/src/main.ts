@@ -182,12 +182,6 @@ const showPlayingRoom = () => {
   // Visa "game wrapper" genom att ta bort "hide"-klassen
   playingRoom.classList.remove("hide");
 
-  // Starta timern här
-  const yourTimeElement: HTMLElement | null =
-    document.getElementById("player1-time");
-  const opponentTimeElement: HTMLElement | null =
-    document.getElementById("player2-time");
-
   if (yourTimeElement && opponentTimeElement) {
     // Starta din timer
     startTimer(yourTimeElement);
@@ -196,30 +190,32 @@ const showPlayingRoom = () => {
   }
 };
 
+const yourTimeElement: HTMLElement | null =
+  document.getElementById("player1-time");
+const opponentTimeElement: HTMLElement | null =
+  document.getElementById("player2-time");
+const intervalMap: Map<HTMLElement, boolean> = new Map();
+
 // Funktion för att starta en timer
 function startTimer(timerElement: HTMLElement): void {
   let seconds: number = 0;
-  let minutes: number = 0;
-  let hours: number = 0;
+  intervalMap.set(timerElement, true);
 
   // Uppdatera elementet varje sekund
-  window.setInterval(() => {
+  const interval = window.setInterval(() => {
     seconds++;
-    if (seconds >= 60) {
-      seconds = 0;
-      minutes++;
-      if (minutes >= 60) {
-        minutes = 0;
-        hours++;
-      }
+    if (seconds >= 30) {
+      clearInterval(interval);
+      stopGame();
     }
 
-    const hoursFormatted: string = hours.toString().padStart(2, "0");
-    const minutesFormatted: string = minutes.toString().padStart(2, "0");
-    const secondsFormatted: string = seconds.toString().padStart(2, "0");
-
-    // Uppdatera tiden i DOM
-    timerElement.textContent = `${hoursFormatted}:${minutesFormatted}:${secondsFormatted}`;
+    const keepRunning = intervalMap.get(timerElement);
+    if (!keepRunning) {
+      clearInterval(interval);
+    } else {
+      const secondsFormatted: string = seconds.toString().padStart(2, "0");
+      timerElement.textContent = `${secondsFormatted}`;
+    }
   }, 1000);
 }
 
@@ -229,10 +225,27 @@ socket.on("connect", () => {
   showStartRoom();
 });
 
+function stopGame() {}
+
+function stopTimer(timerElement: HTMLElement): void {
+  // Retrieve the interval ID from the global map
+  const intervalId = intervalMap.get(timerElement);
+  if (intervalId !== undefined && timerElement !== undefined) {
+    intervalMap.set(timerElement, false);
+    const timerValue = parseInt(timerElement.innerText, 10);
+    socket.emit("registerClick", timerValue);
+  }
+}
+
 // Lyssna på uppdateringar från servern om lobbyn
 socket.on("UpdateLobby", (players: string[]) => {
   console.log("Lobby updated with players:", players);
   updateLobby(players);
+});
+
+// På klienten
+socket.on("otherRegisterClick", () => {
+  console.log("andra spelarens klick");
 });
 
 // Uppdatera UI för lobbyn med namnen på spelarna
@@ -337,6 +350,17 @@ function removeVirus() {
   if (virusImg) {
     virusImg.remove();
   }
+
+  //Stoppa timer
+  console.log("Time now is :" + yourTimeElement?.innerText);
+
+  if (yourTimeElement !== null) {
+    stopTimer(yourTimeElement);
+  } else {
+    console.error("The element #player1-time was not found.");
+  }
+
+  //Rapportera till sever tiden
 }
 
 socket.on("gameEnded", (data) => {

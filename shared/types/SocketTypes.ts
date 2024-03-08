@@ -6,7 +6,7 @@ export interface ServerToClientEvents {
   GameTime: (message: GameTimeMessage) => void;
   UpdateLobby: (playerNames: string[]) => void;
   positionVirus: (data: VirusPosition) => void;
-  clickResponseTime: (elapsedTime: number, nickename:string) => void;
+  clickResponseTime: (elapsedTime: number, nickename: string) => void;
   newRound: (round: number) => void;
   winnerOfRound: (winner: string) => void;
   removeVirus: () => void;
@@ -15,6 +15,8 @@ export interface ServerToClientEvents {
   userJoined: (username: string, timestamp: number) => void;
   readyToStart: () => void;
   gameEnded: (data: GameEndedData) => void;
+  otherRegisterClick: (time: number) => void;
+  stopTimer: () => void;
 }
 
 // Events emitted by the client to the server
@@ -25,7 +27,6 @@ export interface ClientToServerEvents {
   ) => void;
   virusClick: (nickname: string) => void;
 
-
   getRoomList: (callback: (rooms: Room[]) => void) => void;
   userJoinRequest: (
     nickname: string,
@@ -33,6 +34,8 @@ export interface ClientToServerEvents {
     callback: (response: UserJoinResponse) => void
   ) => void;
   playerReady: () => void;
+  registerClick: (time: number) => void;
+  stopTimer: () => void;
 }
 
 export interface WaitingPlayer {
@@ -90,8 +93,8 @@ export interface PlayerReaction {
 export interface GameEndedData {
   winner: string;
   scores: {
-      Player1: number;
-      Player2: number;
+    Player1: number;
+    Player2: number;
   };
   roundsPlayed: number;
 }

@@ -18,7 +18,7 @@ model User {
   nickname  String
   roomId    String      @db.ObjectId
   scores    Int[]
-  socketId  String
+  socketId  String      
   room      Room        @relation(fields: [roomId], references: [id])
 }
 
