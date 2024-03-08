@@ -7,7 +7,6 @@ export interface ServerToClientEvents {
   UpdateLobby: (playerNames: string[]) => void;
   positionVirus: (data: VirusPosition) => void;
   clickResponseTime: (elapsedTime: number, nickename: string) => void;
-  newRound: (round: number) => void;
   winnerOfRound: (winner: string) => void;
   removeVirus: () => void;
   updateScore: (data: ScoreData) => void;
@@ -15,8 +14,9 @@ export interface ServerToClientEvents {
   userJoined: (username: string, timestamp: number) => void;
   readyToStart: () => void;
   gameEnded: (data: GameEndedData) => void;
-  otherRegisterClick: (time: number) => void;
+  otherRegisterClick: (time: number,socketId:string) => void;
   stopTimer: () => void;
+  newRound:(roundCount:number)=> void;
 }
 
 // Events emitted by the client to the server
@@ -36,6 +36,7 @@ export interface ClientToServerEvents {
   playerReady: () => void;
   registerClick: (time: number) => void;
   stopTimer: () => void;
+  newRound:(roundCount:number)=> void;
 }
 
 export interface WaitingPlayer {
@@ -86,9 +87,9 @@ export interface UserJoinResponse {
 }
 
 export interface PlayerReaction {
-  clicked: boolean;
-  reactionTime?: number; // Markera som valfri eftersom den sätts efter klick
+    [key: string]: number;
 }
+
 
 export interface GameEndedData {
   winner: string;

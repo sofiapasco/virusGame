@@ -8,7 +8,7 @@ import {
 	WaitingPlayer,
 	RoomWithUsers,
 	PlayerReaction,
-	GameEndedData,
+
 } from "@shared/types/SocketTypes";
 import prisma from "../prisma";
 
@@ -19,13 +19,12 @@ let waitingPlayers: WaitingPlayer[] = [];
 
 let roundCount = 0;
 const totalRounds = 10;
-let playerReactions: Record<string, PlayerReaction> = {};
+let playerReactions:  PlayerReaction = {};
 let gameStarted = false;
 let roundStarted = Date.now();
-let scores = {
-	player1: 0,
-	player2: 0,
-};
+let scores: { [key: string]: number } = {};
+let playerSessions = {};
+
 
 export const handleConnection = (
 	socket: Socket<ClientToServerEvents, ServerToClientEvents>,
@@ -40,6 +39,8 @@ export const handleConnection = (
 		);
 		debug(`User disconnected, removed from waitingPlayers: ${socket.id}`);
 	});
+
+
 
 	// Lyssna efter anslutning till "JoinTheGame"-händelsen
 	socket.on("JoinTheGame", async (nickname: string, callback) => {
@@ -56,9 +57,8 @@ export const handleConnection = (
 			});
 			return;
 		}
-		/*
 
-*/
+
 		// Lägg till spelaren i arrayen av väntande spelare
 		waitingPlayers.push({ socketId: socket.id, nickname });
 		debug("waitingPlayers: %o", waitingPlayers);
@@ -215,9 +215,15 @@ export const handleConnection = (
 		if (roundCount < totalRounds) {
 			roundCount++;
 			playerReactions = {}; // Nollställ reaktionstider för nästa runda
-			roundStarted = Date.now(); // Uppdatera starttiden för den nya rundan
+
 			emitVirusPosition();
 			io.emit("newRound", roundCount);
+
+			 // Återställ tiden och status för klick för nästa runda
+			 startTime = 0;
+			 clicked = false;
+			 player1Time = null;
+			 player2Time = null;
 		} else {
 			endGame(); // Avsluta spelet om max antal rundor har nåtts
 		}
@@ -226,6 +232,7 @@ export const handleConnection = (
 	socket.on("registerClick", async (time: number) => {
 		console.log("Register click");
 		let socketId = socket.id;
+
 
 		console.log("SocketId:" + socketId);
 		console.log("Time:" + time);
@@ -249,10 +256,19 @@ export const handleConnection = (
 						},
 					},
 				});
-				console.log(
-					"Updated user scores for user with socket ID:",
-					socketId
-				);
+
+
+				console.log("Updated user scores for user with socket ID:",socketId);
+				playerReactions[socketId] = time; // Använd socketId som nyckel för att undvika konflikter
+
+            // Kontrollera om båda spelarna har klickat
+            if (Object.keys(playerReactions).length == 2) {
+
+
+                startNextRound();
+                playerReactions = {};
+            }
+				socket.broadcast.emit("otherRegisterClick", time, socketId);
 			} else {
 				console.log("No user found with socket ID:", socketId);
 			}
@@ -261,28 +277,30 @@ export const handleConnection = (
 		}
 
 		// Emit the "otherRegisterClick" event to all clients in the room
-		io.emit("otherRegisterClick", time);
+		io.emit("otherRegisterClick", time,socketId);
 	});
+
+
 
 	// Definiera funktionen för att avsluta spelet och meddela spelarna
 	const endGame = () => {
-		const winner =
-			scores.player1 > scores.player2
-				? "player1"
-				: scores.player1 < scores.player2
-				? "player2"
-				: "tie";
-
+		const winner = scores.player1 > scores.player2 ? "player1" : scores.player1 < scores.player2 ? "player2" : "tie";
 		const gameEndedData = {
 			winner: winner === "tie" ? "Oavgjort" : winner,
-			scores: scores, // Antag att detta är formatet du redan använder
+			scores: {
+				Player1: scores.player1,  // Ändrad från player1 till Player1
+				Player2: scores.player2,  // Ändrad från player2 till Player2
+			},
 			roundsPlayed: roundCount,
 		};
 
 		console.log("Game ended", gameEndedData);
+		io.emit("gameEnded", gameEndedData);
 
 		resetGameState();
 	};
+
+
 
 	function resetGameState() {
 		gameStarted = false;
@@ -319,4 +337,6 @@ export const handleConnection = (
 			}
 		}
 	};
-};
+
+
+}

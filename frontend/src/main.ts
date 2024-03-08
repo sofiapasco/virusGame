@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "connectBtn"
   ) as HTMLButtonElement;
 
+
   // Funktion för att aktivera knappen när inputfältet inte är tomt
   nicknameInput.addEventListener("input", () => {
     connectBtn.disabled = nicknameInput.value.trim() === "";
@@ -62,6 +63,8 @@ const socket: Socket<ServerToClientEvents, ClientToServerEvents> =
 
 let nickname: string | null = null;
 let nickName: string;
+
+const timerElement = document.getElementById("timer") as HTMLElement;
 
 // Listen for when connection is established
 socket.on("connect", () => {
@@ -235,8 +238,8 @@ function stopTimer(timerElement: HTMLElement): void {
     const timerValue = parseInt(timerElement.innerText, 10);
     socket.emit("registerClick", timerValue);
   }
-}
 
+}
 // Lyssna på uppdateringar från servern om lobbyn
 socket.on("UpdateLobby", (players: string[]) => {
   console.log("Lobby updated with players:", players);
@@ -244,8 +247,9 @@ socket.on("UpdateLobby", (players: string[]) => {
 });
 
 // På klienten
-socket.on("otherRegisterClick", () => {
-  console.log("andra spelarens klick");
+socket.on("otherRegisterClick", (time, socketId) => {
+  console.log("andra spelarens klick",time, socketId);
+  stopTimer(timerElement);
 });
 
 // Uppdatera UI för lobbyn med namnen på spelarna
@@ -264,6 +268,7 @@ socket.on("OtherPlayerJoined", (response) => {
 
   updateLobby(response.nicknames);
 });
+
 
 // Listen for when server got tired of us
 socket.on("disconnect", () => {
@@ -303,6 +308,11 @@ moveOnwaitRoomButtonEl.addEventListener("click", (e) => {
     showWaitingRoom(nickname!);
     updateLobby(response.nicknames);
   });
+});
+
+socket.on("gameEnded", (data) => {
+  alert(`Spelet är över! Vinnare: ${data.winner}. 
+  Poäng: Player1: ${data.scores.Player1}, Player2: ${data.scores.Player2}`);
 });
 
 /**
@@ -382,11 +392,16 @@ socket.on("gameEnded", (data) => {
   }
 });
 
-//Listen to a new round
+// Lyssna på en ny runda
 socket.on("newRound", (round) => {
   const roundCounter = document.getElementById("round");
-  if (roundCounter) roundCounter.textContent = `Round: ${round}`;
+  if (roundCounter) {
+    roundCounter.textContent = `Round: ${round}`;  
+
+    stopTimer(timerElement);
+  }
 });
+ 
 
 socket.on("winnerOfRound", (winner) => {
   // Uppdatera UI med vinnaren av rundan
