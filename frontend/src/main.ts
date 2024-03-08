@@ -341,12 +341,15 @@ function showVirus(x: number, y: number) {
     gameBoard.appendChild(virusImg);
   }
 
+  const clickSound = document.getElementById('clickSound') as HTMLAudioElement | null ;
+
   // Gör bilden klickbar genom att lägga till en 'click'-händelselyssnare
+  if (virusImg && clickSound) {
   virusImg.addEventListener("click", function () {
     console.log("Virus klickad!");
-
     socket.emit("virusClick", nickName);
     removeVirus();
+    clickSound.play();
   });
 }
 
@@ -504,3 +507,4 @@ socket.on("winnerOfRound", (winner) => {
 });
 
 */
+}

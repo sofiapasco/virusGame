@@ -13,16 +13,25 @@ body {
 
 //nicknamevy
 
+#nickname {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
 #nickname-form {
   margin-top: 30vh;
   margin-bottom: 20vh;
+  width: 25em;
+  justify-content: center;
+  align-items: center;
 }
 
 #connectBtn {
   border-radius: 10%;
-  background-color: $dark-green;
   color: lightgrey;
   padding: 1vh;
+  background-color: $dark-green;
 }
 
 #connectBtn:hover {
@@ -68,6 +77,9 @@ body {
   text-align: center;
   padding-top: 30px;
   margin-top: 0vh;
+  font-size: 6em;
+  text-shadow: 2px 2px 0 #00FF00;
+  color: blue;
 }
 
 #round{
@@ -91,10 +103,8 @@ body {
   height: 80vh;
   width: 70vw;
   margin-left: 3vw;
-  cursor: grab;
   position: relative;
-}
-
+ }
 
 .grid-wrapper {
   top: 0;
