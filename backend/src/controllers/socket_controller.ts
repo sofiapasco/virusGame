@@ -249,19 +249,39 @@ export const handleConnection = (
 						},
 					},
 				});
+
 				console.log(
 					"Updated user scores for user with socket ID:",
 					socketId
 				);
+
+				const otherUser = await prisma.user.findFirst({
+					where: {
+						AND: [
+							{
+								roomId: user.roomId, // the user is in the same room
+							},
+							{
+								id: {
+									not: user.id, // the user has a different id
+								},
+							},
+						],
+					},
+				});
+
+				if (otherUser != null) {
+					io.to(otherUser.socketId).emit("otherRegisterClick", time);
+				}
+
+				console.log("Found Other USer");
+				console.log(otherUser);
 			} else {
 				console.log("No user found with socket ID:", socketId);
 			}
 		} catch (error) {
 			console.error("Error updating user scores:", error);
 		}
-
-		// Emit the "otherRegisterClick" event to all clients in the room
-		io.emit("otherRegisterClick", time);
 	});
 
 	// Definiera funktionen för att avsluta spelet och meddela spelarna
