@@ -219,7 +219,7 @@ function startTimer(timerElement: HTMLElement): void {
       const secondsFormatted: string = seconds.toString().padStart(2, "0");
       timerElement.textContent = `${secondsFormatted}`;
     }
-  }, 1000);
+  }, 2000);
 }
 
 // Sätt upp din anslutningslogik
@@ -396,12 +396,17 @@ socket.on("gameEnded", (data) => {
 socket.on("newRound", (round) => {
   const roundCounter = document.getElementById("round");
   if (roundCounter) {
-    roundCounter.textContent = `Round: ${round}`;  
-
-    stopTimer(timerElement);
+    roundCounter.textContent = `Round: ${round}`;
+    resetTimer();
   }
 });
  
+
+function resetTimer() {
+  // Antag att timerElement är den timer du vill återställa och starta om
+  startTimer(timerElement); // Detta stoppar den befintliga timern och startar en ny
+}
+
 
 socket.on("winnerOfRound", (winner) => {
   // Uppdatera UI med vinnaren av rundan

@@ -131,7 +131,7 @@ export const handleConnection = (
 
 	// Carolins - Mäta spelarens reaktionstid vid ett klick.
 	let startTime: number;
-	let clicked: boolean = false;
+	let clicked: number= 0;
 	let player1Time: { reactionTime: number; playerName: string } | null = null;
 	let player2Time: { reactionTime: number; playerName: string } | null = null;
 	/*
@@ -218,12 +218,7 @@ export const handleConnection = (
 
 			emitVirusPosition();
 			io.emit("newRound", roundCount);
-
-			 // Återställ tiden och status för klick för nästa runda
-			 startTime = 0;
-			 clicked = false;
-			 player1Time = null;
-			 player2Time = null;
+			 clicked = 0;
 		} else {
 			endGame(); // Avsluta spelet om max antal rundor har nåtts
 		}
@@ -267,6 +262,7 @@ export const handleConnection = (
 
                 startNextRound();
                 playerReactions = {};
+
             }
 				socket.broadcast.emit("otherRegisterClick", time, socketId);
 			} else {
