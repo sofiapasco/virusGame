@@ -17,6 +17,10 @@ export interface ServerToClientEvents {
   gameEnded: (data: GameEndedData) => void;
   otherRegisterClick: (time: number) => void;
   stopTimer: () => void;
+  updateFrontendScore: (data: {
+    playerOneScore: number;
+    playerTwoScore: number;
+  }) => void;
 }
 
 // Events emitted by the client to the server
