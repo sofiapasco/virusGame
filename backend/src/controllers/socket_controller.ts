@@ -225,8 +225,9 @@ export const handleConnection = (
 	}
 
 	socket.on("registerClick", async (time: number) => {
-		console.log("Register click");
+		console.log("Register click","time",time);
 		let socketId = socket.id;
+		clicked++;
 
 
 		console.log("SocketId:" + socketId);
@@ -259,7 +260,9 @@ export const handleConnection = (
 
             // Kontrollera om båda spelarna har klickat
             if (Object.keys(playerReactions).length == 2) {
-
+				console.log("Both players have clicked. Preparing for next round...");
+				io.emit("newRound", roundCount + 1);
+				clicked= 0;
 
                 startNextRound();
                 playerReactions = {};
@@ -281,9 +284,8 @@ export const handleConnection = (
 						],
 					},
 				});
-
 				if (otherUser != null) {
-					io.to(otherUser.socketId).emit("otherRegisterClick", time);
+					io.to(otherUser.socketId).emit("otherRegisterClick", time,socketId);
 				}
 
 				console.log("Found Other USer");
@@ -294,9 +296,6 @@ export const handleConnection = (
 		} catch (error) {
 			console.error("Error updating user scores:", error);
 		}
-
-		// Emit the "otherRegisterClick" event to all clients in the room
-		io.emit("otherRegisterClick", time,socketId);
 	});
 
 

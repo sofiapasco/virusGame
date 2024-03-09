@@ -17,6 +17,7 @@ export interface ServerToClientEvents {
   otherRegisterClick: (time: number,socketId:string) => void;
   stopTimer: () => void;
   newRound:(roundCount:number)=> void;
+  resetTimers:()=> void;
 }
 
 // Events emitted by the client to the server
@@ -108,4 +109,9 @@ export interface ScoreData {
     player: string;
     score: number;
   };
+}
+
+ export interface UpdateLobbyData {
+  room: RoomWithUsers; // Antag att du har definierat RoomWithUsers någonstans
+  nicknames: string[];
 }

@@ -22,7 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
     "connectBtn"
   ) as HTMLButtonElement;
 
-
   // Funktion för att aktivera knappen när inputfältet inte är tomt
   nicknameInput.addEventListener("input", () => {
     connectBtn.disabled = nicknameInput.value.trim() === "";
@@ -38,6 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (response.success) {
           console.log("Join was successful", response.nicknames);
           updateLobby(response.nicknames);
+          displayPlayerName(response.nicknames); 
         } else {
           alert("You cannot play now, try again later.");
         }
@@ -45,7 +45,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
-
+function displayPlayerName(nicknames: string[]) {
+  // Kontrollerar om vi har några namn att visa
+  if (nicknames.length > 0) {
+    // Hämtar elementet där första spelarens namn ska visas
+    const player1NameElement = document.getElementById('player1-name');
+    // Kontrollerar så att elementet existerar
+    if (player1NameElement) {
+      // Sätter textinnehållet till första namnet i listan av namn
+      player1NameElement.textContent = nicknames[0];
+    }
+  }
+}
 const moveOnwaitRoomButtonEl = document.querySelector(
   "#connectBtn"
 ) as HTMLButtonElement;
@@ -63,8 +74,6 @@ const socket: Socket<ServerToClientEvents, ClientToServerEvents> =
 
 let nickname: string | null = null;
 let nickName: string;
-
-const timerElement = document.getElementById("timer") as HTMLElement;
 
 // Listen for when connection is established
 socket.on("connect", () => {
@@ -123,23 +132,27 @@ const showWaitingRoom = (nickname: string) => {
     }
   };
 
-  // Lyssna på uppdateringar från servern om lobbyn
-  socket.on("UpdateLobby", (players: string[]) => {
-    console.log("Lobby updated with players:", players);
-    updateLobby(players);
-  });
 
   // Uppdatera UI för lobbyn med namnen på spelarna
   const updateLobby = (players: string[]) => {
     const lobbyList = document.getElementById("player-list");
+    const player1NameElement = document.getElementById('player1-name') as HTMLDivElement;
+    const player2NameElement = document.getElementById('player2-name') as HTMLDivElement;
+
 
     if (lobbyList) {
       lobbyList.innerHTML = ""; // Rensa lobbyn för att undvika dubbletter
 
-      players.forEach((player) => {
+      players.forEach((player,index) => {
         const playerElement = document.createElement("li");
         playerElement.textContent = player;
         lobbyList.appendChild(playerElement);
+
+        if (index === 0) {
+          player1NameElement.textContent = player; // Sätter namnet för spelare 1
+        } else if (index === 1) {
+          player2NameElement.textContent = player; // Sätter namnet för spelare 2
+        }
       });
 
       // Kontrollera om det finns tillräckligt med spelare för att starta spelet
@@ -151,6 +164,11 @@ const showWaitingRoom = (nickname: string) => {
       console.error("Elementet för lobbylistan kunde inte hittas.");
     }
   };
+    // Lyssna på uppdateringar från servern om lobbyn
+    socket.on("UpdateLobby", (players: string[]) => {
+      console.log("Lobby updated with players:", players);
+      updateLobby(players);
+    });
 
   // Listen to GameTime when to players want to play
   socket.on("GameTime", (message: GameTimeMessage) => {
@@ -201,6 +219,7 @@ const intervalMap: Map<HTMLElement, boolean> = new Map();
 
 // Funktion för att starta en timer
 function startTimer(timerElement: HTMLElement): void {
+  timerElement.textContent = "00"; // Nollställ tiden
   let seconds: number = 0;
   intervalMap.set(timerElement, true);
 
@@ -274,7 +293,6 @@ socket.on("OtherPlayerJoined", (response) => {
   updateLobby(response.nicknames);
 });
 
-
 // Listen for when server got tired of us
 socket.on("disconnect", () => {
   console.log("💀 Disconnected from the server:", SOCKET_HOST);
@@ -313,11 +331,6 @@ moveOnwaitRoomButtonEl.addEventListener("click", (e) => {
     showWaitingRoom(nickname!);
     updateLobby(response.nicknames);
   });
-});
-
-socket.on("gameEnded", (data) => {
-  alert(`Spelet är över! Vinnare: ${data.winner}. 
-  Poäng: Player1: ${data.scores.Player1}, Player2: ${data.scores.Player2}`);
 });
 
 /**
@@ -359,6 +372,8 @@ function showVirus(x: number, y: number) {
   });
 }
 
+
+
 // Funktion för att ta bort viruset
 function removeVirus() {
   const virusImg = document.getElementById("virusImage");
@@ -372,7 +387,7 @@ function removeVirus() {
   if (yourTimeElement !== null) {
     stopTimer(yourTimeElement);
     const timerValue = parseInt(yourTimeElement.innerText, 10);
-    socket.emit("registerClick", timerValue);
+    socket.emit("registerClick", timerValue,);
   } else {
     console.error("The element #player1-time was not found.");
   }
@@ -397,20 +412,24 @@ socket.on("gameEnded", (data) => {
   }
 });
 
-// Lyssna på en ny runda
+//Listen to a new round
 socket.on("newRound", (round) => {
   const roundCounter = document.getElementById("round");
-  if (roundCounter) {
-    roundCounter.textContent = `Round: ${round}`;
-    resetTimer();
-  }
+  if (roundCounter) roundCounter.textContent = `Round: ${round}`;
+  resetTimer()
 });
- 
 
 function resetTimer() {
-  // Antag att timerElement är den timer du vill återställa och starta om
-  startTimer(timerElement); // Detta stoppar den befintliga timern och startar en ny
-}
+  // Antag att "your-timer" och "opponent-timer" är id för dina timer-element
+  const yourTimerElement = document.getElementById("player1-time");
+  const opponentTimerElement = document.getElementById("player2-time");
+
+  if (yourTimerElement && opponentTimerElement) {
+    startTimer(yourTimerElement);
+    startTimer(opponentTimerElement);
+  }
+
+  }
 
 
 socket.on("winnerOfRound", (winner) => {
