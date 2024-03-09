@@ -12,17 +12,10 @@ import "./assets/scss/style.scss";
 const SOCKET_HOST = import.meta.env.VITE_SOCKET_HOST;
 
 document.addEventListener("DOMContentLoaded", () => {
-  const nicknameForm: HTMLFormElement = document.getElementById(
-    "nickname-form"
-  ) as HTMLFormElement;
-  const nicknameInput: HTMLInputElement = document.getElementById(
-    "nickname-input"
-  ) as HTMLInputElement;
-  const connectBtn: HTMLButtonElement = document.getElementById(
-    "connectBtn"
-  ) as HTMLButtonElement;
+  const nicknameForm: HTMLFormElement = document.getElementById("nickname-form") as HTMLFormElement;
+  const nicknameInput: HTMLInputElement = document.getElementById("nickname-input") as HTMLInputElement;
+  const connectBtn: HTMLButtonElement = document.getElementById("connectBtn") as HTMLButtonElement;
 
-  // Funktion för att aktivera knappen när inputfältet inte är tomt
   nicknameInput.addEventListener("input", () => {
     connectBtn.disabled = nicknameInput.value.trim() === "";
   });
@@ -32,12 +25,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const nickname: string = nicknameInput.value.trim();
 
     if (nickname) {
-      // Använd Socket.IO för att skicka användarnamnet till servern
       socket.emit("JoinTheGame", nickname, (response: UserJoinResponse) => {
         if (response.success) {
-          console.log("Join was successful", response.nicknames);
           updateLobby(response.nicknames);
-          displayPlayerName(response.nicknames); 
+          console.log("Join was successful", response.nicknames);
+
+          if (response.player1name && response.player2name) {
+            displayPlayerNames(response.player1name, response.player2name);
+          } else {
+            alert("You cannot play now, try again later.");
+          }
         } else {
           alert("You cannot play now, try again later.");
         }
@@ -45,17 +42,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
-function displayPlayerName(nicknames: string[]) {
-  // Kontrollerar om vi har några namn att visa
-  if (nicknames.length > 0) {
-    // Hämtar elementet där första spelarens namn ska visas
-    const player1NameElement = document.getElementById('player1-name');
-    // Kontrollerar så att elementet existerar
-    if (player1NameElement) {
-      // Sätter textinnehållet till första namnet i listan av namn
-      player1NameElement.textContent = nicknames[0];
-    }
-  }
+function displayPlayerNames(player1name: string, player2name: string) {
+  const player1NameElement = document.getElementById('player1-name');
+  const player2NameElement = document.getElementById('player2-name');
+  
+  if (player1NameElement) player1NameElement.textContent = player1name;
+  if (player2NameElement) player2NameElement.textContent = player2name;
 }
 const moveOnwaitRoomButtonEl = document.querySelector(
   "#connectBtn"
@@ -165,9 +157,9 @@ const showWaitingRoom = (nickname: string) => {
     }
   };
     // Lyssna på uppdateringar från servern om lobbyn
-    socket.on("UpdateLobby", (players: string[]) => {
-      console.log("Lobby updated with players:", players);
-      updateLobby(players);
+    socket.on("UpdateLobby", (nickNames:string[]) => {
+      console.log("Lobby updated with players:",nickNames);
+      updateLobby(nickNames);
     });
 
   // Listen to GameTime when to players want to play
@@ -190,6 +182,15 @@ const showWaitingRoom = (nickname: string) => {
     console.error("Elementet för spelarlistan kunde inte hittas.");
   }
 };
+socket.on("PlayerJoined", (data) => {
+  // Uppdatera UI här, exempelvis:
+  const player1NameElement = document.getElementById('player1-name');
+  const player2NameElement = document.getElementById('player2-name');
+  
+  if (player1NameElement) player1NameElement.textContent = data.player1name;
+  if (player2NameElement) player2NameElement.textContent = data.player2name;
+});
+
 
 //show playingroom
 const showPlayingRoom = () => {

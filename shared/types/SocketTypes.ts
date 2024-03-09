@@ -22,7 +22,10 @@ export interface ServerToClientEvents {
   }) => void;
   newRound:(roundCount:number)=> void;
   resetTimers:()=> void;
+  PlayerJoined: (data: { player1name: string; player2name: string }) => void;
+  
 }
+
 
 // Events emitted by the client to the server
 export interface ClientToServerEvents {
@@ -89,6 +92,8 @@ export interface UserJoinResponse {
   success: boolean;
   room: RoomWithUsers | null;
   nicknames: string[];
+  player1name?: string; // Make these properties optional
+  player2name?: string;
 }
 
 export interface PlayerReaction {
