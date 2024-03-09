@@ -16,6 +16,10 @@ export interface ServerToClientEvents {
   gameEnded: (data: GameEndedData) => void;
   otherRegisterClick: (time: number,socketId:string) => void;
   stopTimer: () => void;
+  updateFrontendScore: (data: {
+    playerOneScore: number;
+    playerTwoScore: number;
+  }) => void;
   newRound:(roundCount:number)=> void;
   resetTimers:()=> void;
 }

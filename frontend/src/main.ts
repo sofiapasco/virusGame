@@ -209,6 +209,24 @@ const showPlayingRoom = () => {
     // Starta motståndarens timer
     startTimer(opponentTimeElement);
   }
+
+  // Lyssna på 'updateFrontendScore' eventet från servern
+  socket.on("updateFrontendScore", (data) => {
+    // Data är det objekt som innehåller poängen, till exempel:
+    // { playerOneScore: 5, playerTwoScore: 3 }
+
+    // Uppdatera poängen på webbsidan för spelare 1
+    const playerOneScoreElement = document.getElementById("player1-score");
+    if (playerOneScoreElement) {
+      playerOneScoreElement.textContent = data.playerOneScore.toString();
+    }
+
+    // Uppdatera poängen på webbsidan för spelare 2
+    const playerTwoScoreElement = document.getElementById("player2-score");
+    if (playerTwoScoreElement) {
+      playerTwoScoreElement.textContent = data.playerTwoScore.toString();
+    }
+  });
 };
 
 const yourTimeElement: HTMLElement | null =
@@ -363,12 +381,15 @@ function showVirus(x: number, y: number) {
     gameBoard.appendChild(virusImg);
   }
 
+  const clickSound = document.getElementById('clickSound') as HTMLAudioElement | null ;
+
   // Gör bilden klickbar genom att lägga till en 'click'-händelselyssnare
+  if (virusImg && clickSound) {
   virusImg.addEventListener("click", function () {
     console.log("Virus klickad!");
-
     socket.emit("virusClick", nickName);
     removeVirus();
+    clickSound.play();
   });
 }
 
@@ -437,60 +458,6 @@ socket.on("winnerOfRound", (winner) => {
   console.log("Vinnaren av rundan är:", winner);
 });
 
-/*
-//Carros klocka
-
-// Funktion för att starta en timer
-function startTimer(timerElement: HTMLElement): number {
-  let seconds: number = 0;
-  let minutes: number = 0;
-  let hours: number = 0;
-
-  // Uppdatera elementet varje sekund
-  return window.setInterval(() => {
-    seconds++;
-    if (seconds >= 60) {
-      seconds = 0;
-      minutes++;
-      if (minutes >= 60) {
-        minutes = 0;
-        hours++;
-      }
-    }
-
-    // Format tidsträngen med ledande nollor
-    const hoursFormatted: string = hours < 10 ? "0" + hours : hours.toString();
-    const minutesFormatted: string =
-      minutes < 10 ? "0" + minutes : minutes.toString();
-    const secondsFormatted: string =
-      seconds < 10 ? "0" + seconds : seconds.toString();
-
-    // Uppdatera tiden i DOM
-    timerElement.textContent = `${hoursFormatted}:${minutesFormatted}:${secondsFormatted}`;
-  }, 1000);
-}
-
-// Starta klockorna när sidan laddas
-window.addEventListener("DOMContentLoaded", () => {
-  const yourTimeElement: HTMLElement | null =
-    document.getElementById("your-time");
-  const opponentTimeElement: HTMLElement | null =
-    document.getElementById("opponent-time");
-
-  if (yourTimeElement && opponentTimeElement) {
-    // Starta din timer
-    startTimer(yourTimeElement);
-    // Starta motståndarens timer
-    startTimer(opponentTimeElement);
-  }
-});
-
-*/
-socket.on("winnerOfRound", (winner) => {
-  //vinnaren skickas hit - kod här för att öka rätt poängsiffra
-  console.log("Vinnaren av rundan är: ", winner);
-});
-
 // Lyssna efter uppdateringar från servern
 socket.on("updateScore", (data: ScoreData) => {
   if (data.scores) {
@@ -542,3 +509,4 @@ socket.on("winnerOfRound", (winner) => {
 });
 
 */
+}

@@ -11,6 +11,7 @@ import {
 
 } from "@shared/types/SocketTypes";
 import prisma from "../prisma";
+import { User } from "@prisma/client";
 
 // Skapa en ny instans av debug
 const debug = Debug("backend:socket_controller");
@@ -224,6 +225,41 @@ export const handleConnection = (
 		}
 	}
 
+	function calculateScore(userOne: User, userTwo: User) {
+		//Räkna ut poängen för respektive spelare.
+
+		let totalPlayerOne = 0;
+		let totalPlayerTwo = 0;
+
+		for (let i = 0; i < userOne.scores.length; i++) {
+			let scoreOne = userOne.scores[i];
+			let scoreTwo = userTwo.scores[i];
+
+			if (scoreOne > scoreTwo) {
+				totalPlayerOne++;
+			} else if (scoreTwo > scoreOne) {
+				totalPlayerTwo++;
+			} else {
+				totalPlayerOne++;
+				totalPlayerTwo++;
+			}
+		}
+
+		console.log("Player One score:" + totalPlayerOne);
+		console.log("Player Two total score: " + totalPlayerTwo);
+
+		// Skicka poänguppdateringen till alla klienter i rummet
+
+		io.to(userTwo.socketId).emit("updateFrontendScore", {
+			playerOneScore: totalPlayerOne,
+			playerTwoScore: totalPlayerTwo,
+		});
+		io.to(userOne.socketId).emit("updateFrontendScore", {
+			playerOneScore: totalPlayerTwo,
+			playerTwoScore: totalPlayerOne,
+		});
+	}
+
 	socket.on("registerClick", async (time: number) => {
 		console.log("Register click","time",time);
 		let socketId = socket.id;
@@ -241,6 +277,7 @@ export const handleConnection = (
 				},
 			});
 
+			user?.scores.push(time);
 			if (user) {
 				await prisma.user.update({
 					where: {
@@ -288,8 +325,10 @@ export const handleConnection = (
 					io.to(otherUser.socketId).emit("otherRegisterClick", time,socketId);
 				}
 
-				console.log("Found Other USer");
-				console.log(otherUser);
+				if (user && otherUser) {
+					// Beräkna totalpoäng för den aktuella användaren
+					calculateScore(user, otherUser);
+				}
 			} else {
 				console.log("No user found with socket ID:", socketId);
 			}
@@ -342,19 +381,6 @@ export const handleConnection = (
 	io.on("connection", (socket) => {
 		console.log(`Client connected: ${socket.id}`);
 	});
-
-	// Carolin - Jämför tid och utse rundans vinnare
-	const compareReactionTime = () => {
-		if (player1Time && player2Time) {
-			if (player1Time.reactionTime < player2Time.reactionTime) {
-				io.emit("winnerOfRound", player1Time.playerName);
-			} else if (player2Time.reactionTime < player1Time.reactionTime) {
-				io.emit("winnerOfRound", player2Time.playerName);
-			} else {
-				io.emit("winnerOfRound", "It's a tie!");
-			}
-		}
-	};
 
 
 }
