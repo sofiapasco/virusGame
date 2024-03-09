@@ -8,7 +8,7 @@ import {
 	WaitingPlayer,
 	RoomWithUsers,
 	PlayerReaction,
-	UserJoinResponse
+	UserJoinResponse,
 } from "@shared/types/SocketTypes";
 import prisma from "../prisma";
 import { User } from "@prisma/client";
@@ -26,7 +26,7 @@ let scores = {
 	player1: 0,
 	player2: 0,
 };
-let clicked:number = 0;
+let clicked: number = 0;
 export const handleConnection = (
 	socket: Socket<ClientToServerEvents, ServerToClientEvents>,
 	io: Server<ClientToServerEvents, ServerToClientEvents>
@@ -80,7 +80,7 @@ export const handleConnection = (
 				room: roomWithUsers,
 				nicknames,
 				player1name: roomWithUsers.users[0].nickname, // Antag att första användaren i rummet är player1
-        		player2name: roomWithUsers.users[1].nickname,
+				player2name: roomWithUsers.users[1].nickname,
 			});
 		}
 
@@ -123,7 +123,6 @@ export const handleConnection = (
 				},
 			});
 
-
 			roomWithUsers.users.push(dbUser);
 		}
 
@@ -131,14 +130,14 @@ export const handleConnection = (
 		// och spelet är redo att börja.
 		io.emit("PlayerJoined", {
 			player1name: roomWithUsers.users[0].nickname,
-			player2name: roomWithUsers.users[1].nickname
+			player2name: roomWithUsers.users[1].nickname,
 		});
 
 		// Eller om du endast vill informera klienter inom samma rum
 		io.to(roomWithUsers.id).emit("PlayerJoined", {
-		     player1name: roomWithUsers.users[0].nickname,
-		   player2name: roomWithUsers.users[1].nickname
-	 });
+			player1name: roomWithUsers.users[0].nickname,
+			player2name: roomWithUsers.users[1].nickname,
+		});
 
 		return roomWithUsers;
 	}
@@ -320,16 +319,17 @@ export const handleConnection = (
 				});
 
 				if (otherUser != null) {
-					io.to(otherUser.socketId).emit("otherRegisterClick", time,socketId);
-			}
+					io.to(otherUser.socketId).emit(
+						"otherRegisterClick",
+						time,
+						socketId
+					);
+				}
 
 				if (user && otherUser) {
 					// Beräkna totalpoäng för den aktuella användaren
 					calculateScore(user, otherUser);
-
-			
-			}
-
+				}
 			} else {
 				console.log("No user found with socket ID:", socketId);
 			}
