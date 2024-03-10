@@ -7,6 +7,7 @@ import {
 	ServerToClientEvents,
 	WaitingPlayer,
 	RoomWithUsers,
+	GameEndedData,
 	PlayerReaction,
 	UserJoinResponse,
 } from "@shared/types/SocketTypes";
@@ -17,16 +18,8 @@ import { User } from "@prisma/client";
 const debug = Debug("backend:socket_controller");
 
 let waitingPlayers: WaitingPlayer[] = [];
+const MAX_ROUNDS = 10;
 
-let roundCount = 0;
-const totalRounds = 10;
-let playerReactions: Record<string, PlayerReaction> = {};
-let gameStarted = false;
-let scores = {
-	player1: 0,
-	player2: 0,
-};
-let clicked: number = 0;
 export const handleConnection = (
 	socket: Socket<ClientToServerEvents, ServerToClientEvents>,
 	io: Server<ClientToServerEvents, ServerToClientEvents>
@@ -43,22 +36,8 @@ export const handleConnection = (
 
 	// Lyssna efter anslutning till "JoinTheGame"-händelsen
 	socket.on("JoinTheGame", async (nickname: string, callback) => {
-		debug(
-			`Attempt to join game by ${nickname}, game started: ${gameStarted}`
-		);
+		debug(`Attempt to join game by ${nickname}, game started`);
 
-		if (gameStarted) {
-			debug("Game already started, new players cannot join right now.");
-			callback({
-				success: false,
-				room: null,
-				nicknames: [],
-			});
-			return;
-		}
-		/*
-
-*/
 		// Lägg till spelaren i arrayen av väntande spelare
 		waitingPlayers.push({ socketId: socket.id, nickname });
 		debug("waitingPlayers: %o", waitingPlayers);
@@ -68,12 +47,17 @@ export const handleConnection = (
 
 		//2 Spelar är anslutna och vi skapar ett rum till dem.
 		if (waitingPlayers.length === 2) {
-			var roomWithUsers = await initiateGameIfReady(waitingPlayers);
-			io.emit("UpdateLobby", nicknames);
+			let roomWithUsers = await initiateGameIfReady(waitingPlayers);
+
+			//Add the clients to their own room
+			console.log("Current socket id: " + socket.id);
+			addSocketToRoom(waitingPlayers[0].socketId, roomWithUsers.id);
+			addSocketToRoom(waitingPlayers[1].socketId, roomWithUsers.id);
+
 			waitingPlayers = [];
-			roundCount = 1;
-			emitVirusPosition();
-			io.emit("newRound", roundCount);
+			io.to(roomWithUsers.id).emit("UpdateLobby", nicknames);
+
+			startNextRound(roomWithUsers.id, 0);
 
 			callback({
 				success: true,
@@ -86,10 +70,21 @@ export const handleConnection = (
 
 		callback({
 			success: true,
-			room: null, // Ingen faktiskt rum ännu, så rummet är null
+			room: null, //Waiting for 2nd player to create room.
 			nicknames,
 		});
 	});
+
+	function addSocketToRoom(socketId: string, roomId: string) {
+		const targetSocket = io.sockets.sockets.get(socketId);
+		console.log("Adding socket " + socketId + "to Room: " + roomId);
+		if (targetSocket) {
+			targetSocket.join(roomId);
+			console.log(`Socket ${socketId} added to room ${roomId}`);
+		} else {
+			console.log(`Socket ${socketId} does not exist.`);
+		}
+	}
 
 	async function initiateGameIfReady(
 		players: WaitingPlayer[]
@@ -103,7 +98,9 @@ export const handleConnection = (
 		debug("Before creating a room");
 		let dbRoom = await prisma.room.create({
 			data: {
-				name: `Game between ${players[0].nickname} and ${players[1].nickname}`,
+				name: `Game between ${players[0].nickname} and ${
+					players[1].nickname
+				} - ${Date.now()}`,
 			},
 		});
 		debug("After creating a room");
@@ -124,141 +121,40 @@ export const handleConnection = (
 			});
 
 			roomWithUsers.users.push(dbUser);
+			console.log(dbUser);
 		}
-
-		// Här sänder du ut till alla anslutna klienter att två spelare har anslutit till ett rum
-		// och spelet är redo att börja.
-		io.emit("PlayerJoined", {
-			player1name: roomWithUsers.users[0].nickname,
-			player2name: roomWithUsers.users[1].nickname,
-		});
-
-		// Eller om du endast vill informera klienter inom samma rum
-		io.to(roomWithUsers.id).emit("PlayerJoined", {
-			player1name: roomWithUsers.users[0].nickname,
-			player2name: roomWithUsers.users[1].nickname,
-		});
+		debug("After creating users");
 
 		return roomWithUsers;
 	}
 
-	// Carolins - Mäta spelarens reaktionstid vid ett klick.
-	let startTime: number;
+	function startNextRound(roomId: string, playedRounds: number) {
+		console.log("Starting new round");
+		if (playedRounds < MAX_ROUNDS) {
+			console.log("We start a new Round!:" + playedRounds++);
 
-	let player1Time: { reactionTime: number; playerName: string } | null = null;
-	let player2Time: { reactionTime: number; playerName: string } | null = null;
-	/*
-	const startTimer = () => {
-		//startTimer() ska anropas med samma delay som viruset dyker upp
-		startTime = Date.now();
-
-		// lyssna efter klick på virus
-		socket.on("virusClick", (playerName: string) => {
-			if (!clicked) {
-				// = inte false, alltså true
-				clicked = true; //spelaren har klickat
-				const reactionTime = Date.now() - startTime;
-				const playerTime = {
-					reactionTime: reactionTime,
-					playerName: playerName,
-				};
-
-				if (!player1Time) {
-					player1Time = playerTime;
-				} else if (!player2Time) {
-					player2Time = playerTime;
-				}
-				io.emit("clickResponseTime", reactionTime);
-				clicked = false; // återställer click
-			}
-		});
-
-		// om ingen klick gjorts på 30 sek
-		const handleNoclick = () => {
-			if (!clicked) {
-				clicked = true;
-				io.emit("clickResponseTime", 30000);
-				clicked = false; // återställer click
-			}
-		};
-
-		// När tiden skickats, kör compareReactionTime()
-		compareReactionTime();
-	};
-*/
-
-	/*
-	socket.on("virusClick", (nickname) => {
-		if (!gameStarted || roundCount > totalRounds) return;
-
-		// Registrera reaktionstid endast om spelaren inte redan har klickat under denna runda
-		if (!playerReactions[nickname]) {
-			const reactionTime = Date.now() - roundStarted;
-			playerReactions[nickname] = {
-				clicked: true,
-				reactionTime: reactionTime,
-			};
-
-			console.log(
-				`Spelaren ${nickname} klickade på viruset! Reaktionstid:`,
-				reactionTime
+			setTimeout(
+				() => emitVirusAndStartNewRound(roomId, playedRounds),
+				randomDelay()
 			);
-
-			// Meddela alla klienter om spelarens reaktionstid
-			io.emit("clickResponseTime", reactionTime, nickname);
-
-			// Kontrollera om alla spelare har reagerat
-			if (
-				Object.keys(playerReactions).length ==
-				Object.keys(scores).length
-			) {
-				console.log(
-					"Alla spelare har klickat. Förbereder att starta nästa runda..."
-				);
-				setTimeout(() => {
-					startNextRound(); // Starta nästa runda efter en kort fördröjning
-				}, 2000); // 2 sekunders fördröjning till nästa runda
-			}
-		}
-	});
-
-*/
-
-	function startNextRound() {
-		if (roundCount < totalRounds) {
-			roundCount++;
-			playerReactions = {}; // Nollställ reaktionstider för nästa runda
-			emitVirusPosition();
-			io.emit("newRound", roundCount);
 		} else {
-			endGame(); // Avsluta spelet om max antal rundor har nåtts
+			endGame(roomId);
 		}
 	}
 
+	function emitVirusAndStartNewRound(roomId: string, playedRounds: number) {
+		emitVirusPosition(roomId);
+		io.to(roomId).emit("newRound", playedRounds++);
+	}
+
 	function calculateScore(userOne: User, userTwo: User) {
-		//Räkna ut poängen för respektive spelare.
-
-		let totalPlayerOne = 0;
-		let totalPlayerTwo = 0;
-
-		for (let i = 0; i < userOne.scores.length; i++) {
-			let scoreOne = userOne.scores[i];
-			let scoreTwo = userTwo.scores[i];
-
-			if (scoreOne > scoreTwo) {
-				totalPlayerOne++;
-			} else if (scoreTwo > scoreOne) {
-				totalPlayerTwo++;
-			} else {
-				totalPlayerOne++;
-				totalPlayerTwo++;
-			}
-		}
+		let { totalPlayerOne, totalPlayerTwo } = calculateUserScores(
+			userOne,
+			userTwo
+		);
 
 		console.log("Player One score:" + totalPlayerOne);
 		console.log("Player Two total score: " + totalPlayerTwo);
-
-		// Skicka poänguppdateringen till alla klienter i rummet
 
 		io.to(userTwo.socketId).emit("updateFrontendScore", {
 			playerOneScore: totalPlayerOne,
@@ -271,11 +167,10 @@ export const handleConnection = (
 	}
 
 	socket.on("registerClick", async (time: number) => {
-		console.log("Register click");
+		console.log(
+			"Register click: " + "Socket: " + socket.id + ". Time: " + time
+		);
 		let socketId = socket.id;
-
-		console.log("SocketId:" + socketId);
-		console.log("Time:" + time);
 
 		// Hitta användaren baserat på socketId och uppdatera deras poäng
 		try {
@@ -327,8 +222,13 @@ export const handleConnection = (
 				}
 
 				if (user && otherUser) {
-					// Beräkna totalpoäng för den aktuella användaren
-					calculateScore(user, otherUser);
+					if (user.scores.length == otherUser.scores.length) {
+						calculateScore(user, otherUser);
+						startNextRound(
+							user.roomId,
+							GetPlayedRounds(user.scores)
+						);
+					}
 				}
 			} else {
 				console.log("No user found with socket ID:", socketId);
@@ -338,45 +238,91 @@ export const handleConnection = (
 		}
 	});
 
-	// Definiera funktionen för att avsluta spelet och meddela spelarna
-	const endGame = () => {
-		const winner =
-			scores.player1 > scores.player2
-				? "player1"
-				: scores.player1 < scores.player2
-				? "player2"
-				: "tie";
-
-		const gameEndedData = {
-			winner: winner === "tie" ? "Oavgjort" : winner,
-			scores: scores, // Antag att detta är formatet du redan använder
-			roundsPlayed: roundCount,
-		};
-
-		console.log("Game ended", gameEndedData);
-
-		resetGameState();
+	const GetPlayedRounds: (games: number[]) => number = (games: number[]) => {
+		return games.length;
 	};
 
-	function resetGameState() {
-		gameStarted = false;
-		waitingPlayers = [];
-		playerReactions = {};
-		roundCount = 0;
-		scores = { player1: 0, player2: 0 }; // Återställ poängen
+	// Definiera funktionen för att avsluta spelet och meddela spelarna
+	const endGame = async (roomId: string) => {
+		const users = await prisma.user.findMany({
+			where: {
+				roomId: roomId, // the user is in the same room
+			},
+		});
+
+		let userOne = users[0];
+		let userTwo = users[1];
+
+		let totalPlayerOneScore = GetScore(userOne);
+		let totalPlayerTwoScore = GetScore(userTwo);
+
+		const winner =
+			totalPlayerOneScore < totalPlayerTwoScore
+				? userOne.nickname
+				: totalPlayerOneScore > totalPlayerTwoScore
+				? userTwo.nickname
+				: "Oavgjort";
+
+		const gameEndedData = {
+			winner: winner,
+			scores: {
+				Player1: totalPlayerOneScore,
+				Player2: totalPlayerTwoScore,
+			},
+			nicknames: {
+				Player1: userOne.nickname,
+				Player2: userTwo.nickname,
+			},
+			responsetime: {
+				Player1: totalPlayerOneScore,
+				Player2: totalPlayerTwoScore,
+			},
+			roundsPlayed: userOne.scores.length,
+		};
+
+		// Spara högsta poäng etc.
+
+		io.to(roomId).emit("gameEnded", gameEndedData);
+	};
+	function GetScore(user: User): number {
+		return user.scores.reduce((accumulator, currentValue) => {
+			return accumulator + currentValue;
+		}, 0);
 	}
 
-	function emitVirusPosition() {
-		// Slumpa fram en position
-		const x = Math.floor(Math.random() * 10) + 1; // Exempel: x mellan 1 och 10
-		const y = Math.floor(Math.random() * 10) + 1; // Exempel: y mellan 1 och 10
+	function emitVirusPosition(roomId: string) {
+		const x = Math.floor(Math.random() * 10) + 1;
+		const y = Math.floor(Math.random() * 10) + 1;
 
-		console.log(`Emitting virus position: x=${x}, y=${y}`);
-		// Sänd virusposition till alla anslutna klienter
-		io.emit("positionVirus", { x, y });
+		console.log(
+			`Emitting virus position to room ${roomId}: x=${x}, y=${y}`
+		);
+		io.to(roomId).emit("positionVirus", { x, y }, roomId);
 	}
 
-	io.on("connection", (socket) => {
-		console.log(`Client connected: ${socket.id}`);
-	});
+	function randomDelay(): number {
+		return Math.random() * (1500 - 500) + 500;
+	}
 };
+function calculateUserScores(userOne: User, userTwo: User) {
+	let totalPlayerOne = 0;
+	let totalPlayerTwo = 0;
+
+	console.log("Calculate score player One: " + userOne.scores);
+	console.log("Calculate score player Two: " + userTwo.scores);
+
+	for (let i = 0; i < userOne.scores.length; i++) {
+		let scoreOne = userOne.scores[i];
+		let scoreTwo = userTwo.scores[i];
+
+		if (scoreOne > scoreTwo) {
+			totalPlayerOne++;
+		} else if (scoreTwo > scoreOne) {
+			totalPlayerTwo++;
+		} else {
+			totalPlayerOne++;
+			totalPlayerTwo++;
+		}
+	}
+	return { totalPlayerOne, totalPlayerTwo };
+}
