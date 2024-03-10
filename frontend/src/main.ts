@@ -27,6 +27,13 @@ const opponentTimeElement: HTMLElement | null =
   document.getElementById("player2-time");
 const intervalMap: Map<HTMLElement, boolean> = new Map();
 
+const player1NameElement = document.getElementById(
+  "player1-name"
+) as HTMLDivElement;
+const player2NameElement = document.getElementById(
+  "player2-name"
+) as HTMLDivElement;
+
 document.addEventListener("DOMContentLoaded", () => {
   const nicknameInput: HTMLInputElement = document.getElementById(
     "nickname-input"
@@ -204,6 +211,20 @@ socket.on("UpdateLobby", (players: string[]) => {
 // Uppdatera UI för lobbyn med namnen på spelarna
 const updateLobby = (players: string[]) => {
   // Kontrollera om det finns tillräckligt med spelare för att starta spelet
+  const lobbyList = document.getElementById("player-list");
+
+  players.forEach((player, index) => {
+    const playerElement = document.createElement("li");
+    playerElement.textContent = player;
+    lobbyList?.appendChild(playerElement);
+
+    if (index === 0) {
+      player1NameElement.textContent = player; // Sätter namnet för spelare 1
+    } else if (index === 1) {
+      player2NameElement.textContent = player; // Sätter namnet för spelare 2
+    }
+  });
+
   if (players.length == 2) {
     // Om det finns två spelare i lobbyn, starta spelet
     console.log("Show playing room from UpdateLobby");
@@ -218,6 +239,32 @@ socket.on("OtherPlayerJoined", (response) => {
 
   console.log("UpdateLobby otherplayerjoined");
   updateLobby(response.nicknames);
+});
+
+socket.on("PlayerJoined", (data) => {
+  // Uppdatera UI här, exempelvis:
+  const player1NameElement = document.getElementById("player1-name");
+  const player2NameElement = document.getElementById("player2-name");
+
+  if (player1NameElement) player1NameElement.textContent = data.player1name;
+  if (player2NameElement) player2NameElement.textContent = data.player2name;
+});
+
+socket.on("updateFrontendScore", (data) => {
+  // Data är det objekt som innehåller poängen, till exempel:
+  // { playerOneScore: 5, playerTwoScore: 3 }
+
+  // Uppdatera poängen på webbsidan för spelare 1
+  const playerOneScoreElement = document.getElementById("player1-score");
+  if (playerOneScoreElement) {
+    playerOneScoreElement.textContent = data.playerOneScore.toString();
+  }
+
+  // Uppdatera poängen på webbsidan för spelare 2
+  const playerTwoScoreElement = document.getElementById("player2-score");
+  if (playerTwoScoreElement) {
+    playerTwoScoreElement.textContent = data.playerTwoScore.toString();
+  }
 });
 
 // Listen for when server got tired of us
@@ -252,10 +299,25 @@ moveOnwaitRoomButtonEl.addEventListener("click", (e) => {
       alert("You can not play now, try again later");
       return;
     }
+
+    if (response.player1name && response.player2name) {
+      displayPlayerNames(response.player1name, response.player2name);
+    } else {
+      alert("You cannot play now, try again later.");
+    }
+
     // Call showWaitingRoom with the nickname to display it
     showWaitingRoom(trimmedNickname!);
   });
 });
+
+function displayPlayerNames(player1name: string, player2name: string) {
+  const player1NameElement = document.getElementById("player1-name");
+  const player2NameElement = document.getElementById("player2-name");
+
+  if (player1NameElement) player1NameElement.textContent = player1name;
+  if (player2NameElement) player2NameElement.textContent = player2name;
+}
 
 /**
  *  CAROLINS
@@ -293,31 +355,6 @@ function removeVirus() {
     virusImg.remove();
   }
 }
-
-socket.on("gameEnded", (data) => {
-  console.log(data);
-  console.log("Spelet slutade. Vinnare:", data.winner, "Poäng:", data.scores);
-
-  /*
-  // Uppdatera UI med vinnaren
-  
-  const winnerElement = document.getElementById("game-winner");
-  if (winnerElement) {
-    winnerElement.textContent = data.winner; // Visar vinnarens namn
-  }
-
-    // Antag att 'data.scores' är ett objekt med poäng för 'player1' och 'player2', till exempel: { player1: 3, player2: 2 }
-    const player1ScoreElement = document.getElementById("player1-score");
-    const player2ScoreElement = document.getElementById("player2-score");
-
-  if (player1ScoreElement && player2ScoreElement) {
-    player1ScoreElement.textContent = data.scores.Player1.toString(); // Uppdaterar spelare 1:s poäng
-    player2ScoreElement.textContent = data.scores.Player2.toString(); // Uppdaterar spelare 2:s poäng
-  }
-  */
-
-  //Ask about joining a new game.
-});
 
 //Listen to a new round
 socket.on("newRound", (round) => {
@@ -379,6 +416,45 @@ function showVirus(x: number, y: number) {
     virusImg.addEventListener("click", virusClick);
   }
 }
+
+socket.on("gameEnded", (data) => {
+  console.log("Spelet slutade. Vinnare:", data.winner, "Poäng:", data.scores);
+
+  const winnerElement = document.getElementById("game-winner");
+  if (winnerElement) {
+    winnerElement.textContent = data.winner; // Visar vinnarens namn
+  }
+
+  // Antag att 'data.scores' är ett objekt med poäng för 'player1' och 'player2', till exempel: { player1: 3, player2: 2 }
+  const player1ScoreElement = document.getElementById("player1-score");
+  const player2ScoreElement = document.getElementById("player2-score");
+
+  if (player1ScoreElement && player2ScoreElement) {
+    player1ScoreElement.textContent = data.scores.Player1.toString(); // Uppdaterar spelare 1:s poäng
+    player2ScoreElement.textContent = data.scores.Player2.toString(); // Uppdaterar spelare 2:s poäng
+  }
+});
+
+socket.on("updateScore", (data: ScoreData) => {
+  if (data.scores) {
+    const player1ScoreEl = document.getElementById("player1-score");
+    const player2ScoreEl = document.getElementById("player2-score");
+
+    if (player1ScoreEl && player2ScoreEl) {
+      player1ScoreEl.textContent = data.scores.player1.toString();
+      player2ScoreEl.textContent = data.scores.player2.toString();
+    }
+
+    // Uppdatera highscore-listan
+    if (data.highscore) {
+      const { player, score } = data.highscore;
+      const highscoreListElement = document.getElementById("highscore-list");
+      if (highscoreListElement) {
+        highscoreListElement.innerHTML = `<h2>Highscore</h2><p>${player} - ${score}</p>`;
+      }
+    }
+  }
+});
 
 /*
 

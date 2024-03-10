@@ -19,6 +19,11 @@ const debug = Debug("backend:socket_controller");
 
 let waitingPlayers: WaitingPlayer[] = [];
 const MAX_ROUNDS = 10;
+let scores = {
+	player1: 0,
+	player2: 0,
+};
+let clicked: number = 0;
 
 export const handleConnection = (
 	socket: Socket<ClientToServerEvents, ServerToClientEvents>,
@@ -63,14 +68,14 @@ export const handleConnection = (
 				success: true,
 				room: roomWithUsers,
 				nicknames,
-				player1name: roomWithUsers.users[0].nickname, // Antag att första användaren i rummet är player1
+				player1name: roomWithUsers.users[0].nickname,
 				player2name: roomWithUsers.users[1].nickname,
 			});
 		}
 
 		callback({
 			success: true,
-			room: null, //Waiting for 2nd player to create room.
+			room: null,
 			nicknames,
 		});
 	});
@@ -124,6 +129,19 @@ export const handleConnection = (
 			console.log(dbUser);
 		}
 		debug("After creating users");
+
+		// Här sänder du ut till alla anslutna klienter att två spelare har anslutit till ett rum
+		// och spelet är redo att börja.
+		io.emit("PlayerJoined", {
+			player1name: roomWithUsers.users[0].nickname,
+			player2name: roomWithUsers.users[1].nickname,
+		});
+
+		// Eller om du endast vill informera klienter inom samma rum
+		io.to(roomWithUsers.id).emit("PlayerJoined", {
+			player1name: roomWithUsers.users[0].nickname,
+			player2name: roomWithUsers.users[1].nickname,
+		});
 
 		return roomWithUsers;
 	}
@@ -256,6 +274,11 @@ export const handleConnection = (
 		let totalPlayerOneScore = GetScore(userOne);
 		let totalPlayerTwoScore = GetScore(userTwo);
 
+		let { totalPlayerOne, totalPlayerTwo } = calculateUserScores(
+			userOne,
+			userTwo
+		);
+
 		const winner =
 			totalPlayerOneScore < totalPlayerTwoScore
 				? userOne.nickname
@@ -266,8 +289,8 @@ export const handleConnection = (
 		const gameEndedData = {
 			winner: winner,
 			scores: {
-				Player1: totalPlayerOneScore,
-				Player2: totalPlayerTwoScore,
+				Player1: totalPlayerOne,
+				Player2: totalPlayerTwo,
 			},
 			nicknames: {
 				Player1: userOne.nickname,
@@ -284,6 +307,7 @@ export const handleConnection = (
 
 		io.to(roomId).emit("gameEnded", gameEndedData);
 	};
+
 	function GetScore(user: User): number {
 		return user.scores.reduce((accumulator, currentValue) => {
 			return accumulator + currentValue;

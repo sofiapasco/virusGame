@@ -19,6 +19,7 @@ export interface ServerToClientEvents {
     playerOneScore: number;
     playerTwoScore: number;
   }) => void;
+  PlayerJoined: (data: { player1name: string; player2name: string }) => void;
   //startNextRound: (roundDetails: RoundDetails) => void;
 }
 
@@ -86,7 +87,7 @@ export interface UserJoinResponse {
   success: boolean;
   room: RoomWithUsers | null;
   nicknames: string[];
-  player1name?: string; // Make these properties optional
+  player1name?: string;
   player2name?: string;
 }
 
