@@ -14,11 +14,12 @@ export interface ServerToClientEvents {
   gameEnded: (data: GameEndedData) => void;
   otherRegisterClick: (time: number, socketId: string) => void;
   stopTimer: () => void;
+  newRound: (roundCount: number) => void;
   updateFrontendScore: (data: {
     playerOneScore: number;
     playerTwoScore: number;
   }) => void;
-  startNextRound: (roundDetails: RoundDetails) => void;
+  //startNextRound: (roundDetails: RoundDetails) => void;
 }
 
 // Events emitted by the client to the server

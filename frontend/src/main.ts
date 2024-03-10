@@ -102,14 +102,6 @@ const showWaitingRoom = (nickname: string) => {
     console.error("Elementet för spelarlistan kunde inte hittas.");
   }
 };
-socket.on("PlayerJoined", (data) => {
-  // Uppdatera UI här, exempelvis:
-  const player1NameElement = document.getElementById("player1-name");
-  const player2NameElement = document.getElementById("player2-name");
-
-  if (player1NameElement) player1NameElement.textContent = data.player1name;
-  if (player2NameElement) player2NameElement.textContent = data.player2name;
-});
 
 //show playingroom
 const showPlayingRoom = () => {
