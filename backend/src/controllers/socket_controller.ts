@@ -130,13 +130,6 @@ export const handleConnection = (
 		}
 		debug("After creating users");
 
-		// Här sänder du ut till alla anslutna klienter att två spelare har anslutit till ett rum
-		// och spelet är redo att börja.
-		io.emit("PlayerJoined", {
-			player1name: roomWithUsers.users[0].nickname,
-			player2name: roomWithUsers.users[1].nickname,
-		});
-
 		// Eller om du endast vill informera klienter inom samma rum
 		io.to(roomWithUsers.id).emit("PlayerJoined", {
 			player1name: roomWithUsers.users[0].nickname,
@@ -302,8 +295,6 @@ export const handleConnection = (
 			},
 			roundsPlayed: userOne.scores.length,
 		};
-
-		// Spara högsta poäng etc.
 
 		io.to(roomId).emit("gameEnded", gameEndedData);
 	};
