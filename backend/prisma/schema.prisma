@@ -29,3 +29,12 @@ model MatchResult {
   gameTime  Int      // Antalet sekunder för matchens speltid
   createdAt DateTime @default(now())
 }
+
+model Match {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  playerOne String   // AnvändarID eller nickname för spelare ett
+  playerTwo String   // AnvändarID eller nickname för spelare två
+  winner    String?  // AnvändarID eller nickname för vinnaren, null om oavgjort
+  scores    Json     // JSON-sträng med poäng för varje runda, exempel: [{playerOne: 250, playerTwo: 300}, ...]
+  createdAt DateTime @default(now())
+}

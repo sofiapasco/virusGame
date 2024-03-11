@@ -23,6 +23,7 @@ export interface ServerToClientEvents {
   newRound:(roundCount:number)=> void;
   resetTimers:()=> void;
   PlayerJoined: (data: { player1name: string; player2name: string }) => void;
+  updateStats: (data: { recentMatches: RecentMatches; highscores: Highscores }) => void;
   
 }
 
@@ -100,6 +101,11 @@ export interface PlayerReaction {
     [key: string]: number;
 }
 
+export interface Player {
+  id: number; // eller en annan unik identifierare
+  nickname: string;
+}
+
 
 export interface GameEndedData {
   winner: string;
@@ -124,3 +130,18 @@ export interface ScoreData {
   room: RoomWithUsers; // Antag att du har definierat RoomWithUsers någonstans
   nicknames: string[];
 }
+
+export interface Highscore {
+  player: string;
+  score: number;
+}
+
+export interface MatchResult {
+  playerOne: string;
+  playerTwo: string;
+  winner: string;
+  scores: string;
+}
+
+type Highscores = Highscore[];
+type RecentMatches = MatchResult[];

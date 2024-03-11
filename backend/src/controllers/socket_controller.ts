@@ -9,6 +9,9 @@ import {
 	RoomWithUsers,
 	PlayerReaction,
 	UserJoinResponse,
+	Player,
+	Highscore,
+	MatchResult
 } from "@shared/types/SocketTypes";
 import prisma from "../prisma";
 import { User } from "@prisma/client";
@@ -356,6 +359,7 @@ export const handleConnection = (
 		console.log("Game ended", gameEndedData);
 
 		resetGameState();
+		//saveMatchResult(playerOne,playerTwo,winner,scores);
 	};
 
 	function resetGameState() {
@@ -365,6 +369,22 @@ export const handleConnection = (
 		roundCount = 0;
 		scores = { player1: 0, player2: 0 }; // Återställ poängen
 	}
+
+	const saveMatchResult = async (
+		playerOne: Player,
+		playerTwo: Player,
+		winner: string,
+		scores: { player1: number, player2: number }[]
+	  ) => {
+		await prisma.match.create({
+		  data: {
+			playerOne: playerOne.nickname,
+			playerTwo: playerTwo.nickname,
+			winner: winner === "tie" ? null : winner, // null om oavgjort, annars vinnarens nickname
+			scores: JSON.stringify(scores),
+		  },
+		});
+	  };
 
 	function emitVirusPosition() {
 		// Slumpa fram en position
@@ -379,4 +399,19 @@ export const handleConnection = (
 	io.on("connection", (socket) => {
 		console.log(`Client connected: ${socket.id}`);
 	});
+	//uppdatera 10 matcher
+	const updateLobbyGames= async () => {
+		const recentMatches = await prisma.match.findMany({
+		  take: 10,
+		  orderBy: {
+			createdAt: 'desc',
+		  },
+		});
+
+		// Antag att vi har en funktion för att hämta highscores...
+		//const highscores = await getHighscores();
+
+		//io.emit("updateStats", { recentMatches, highscores });
+	  }
+
 };
