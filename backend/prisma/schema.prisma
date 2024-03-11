@@ -38,3 +38,9 @@ model Match {
   scores    Json     // JSON-sträng med poäng för varje runda, exempel: [{playerOne: 250, playerTwo: 300}, ...]
   createdAt DateTime @default(now())
 }
+
+model Highscore {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  nickname          String     @unique
+  averageReactionMs Float
+}

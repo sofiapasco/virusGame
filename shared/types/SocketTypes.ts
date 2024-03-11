@@ -7,7 +7,6 @@ export interface ServerToClientEvents {
   clickResponseTime: (elapsedTime: number, nickename: string) => void;
   winnerOfRound: (winner: string) => void;
   removeVirus: () => void;
-  updateScore: (data: ScoreData) => void;
   OtherPlayerJoined: (response: UserJoinResponse) => void;
   userJoined: (username: string, timestamp: number) => void;
   readyToStart: () => void;
@@ -20,8 +19,9 @@ export interface ServerToClientEvents {
     playerTwoScore: number;
   }) => void;
   PlayerJoined: (data: { player1name: string; player2name: string }) => void;
-  updateStats: (data: { recentMatches: RecentMatches; highscores: Highscores }) => void;
-  //startNextRound: (roundDetails: RoundDetails) => void;
+  updateHighscore: (highscores: Highscore[]) => void;
+  updateMatchHistory: (matchHistory: Match[]) => void;
+  updateScore: (data: ScoreData) => void;
 }
 
 // Events emitted by the client to the server
@@ -134,17 +134,19 @@ export interface UpdateLobbyData {
   nicknames: string[];
 }
 
-export interface Highscore {
-  player: string;
-  score: number;
+interface Highscore {
+  nickname: string;
+  averageReactionMs: number;
 }
 
-export interface MatchResult {
+export interface Scores {
+  player1: number;
+  player2: number;
+}
+
+export interface Match {
   playerOne: string;
   playerTwo: string;
   winner: string;
-  scores: string;
+  scores: { player1: number; player2: number };
 }
-
-type Highscores = Highscore[];
-type RecentMatches = MatchResult[];

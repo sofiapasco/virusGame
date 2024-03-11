@@ -4,6 +4,7 @@ import {
   ServerToClientEvents,
   VirusPosition,
   ScoreData,
+
 } from "@shared/types/SocketTypes";
 import "./assets/scss/style.scss";
 
@@ -142,6 +143,27 @@ const showPlayingRoom = () => {
     }
   });
 };
+
+socket.on('updateHighscore', (highscores) => {
+  const list = document.getElementById('highscoreList') as HTMLUListElement;
+  list.innerHTML = ''; 
+  highscores.forEach((score) => {
+    const item = document.createElement('li');
+    item.textContent = `${score.nickname}: ${score.averageReactionMs} ms`;
+    list.appendChild(item);
+  });
+});
+
+socket.on('updateMatchHistory', (matchHistory) => {
+  const list = document.getElementById('matchHistoryList')as HTMLUListElement;
+  list.innerHTML = ''; // Rensa befintlig lista
+  matchHistory.forEach((match) => {
+    const item = document.createElement('li');
+    item.textContent = `Player 1: ${match.playerOne}, Player 2: ${match.playerTwo}, Winner: ${match.winner}`;
+    list.appendChild(item);
+  });
+});
+
 
 // Funktion för att starta en timer
 function startTimer(timerElement: HTMLElement): void {
@@ -456,32 +478,3 @@ socket.on("updateScore", (data: ScoreData) => {
   }
 });
 
-/*
-
-// Carolins
-socket.on("winnerOfRound", (winner) => {
-  //vinnaren ska skickas hit när de spelat
-  // kod här för att öka rätt poängsiffra
-  const player1 = ""; //ersätt "" med en user från databasen
-  const player2 = ""; //ersätt "" med en user från databasen
-  const player1ScoreEl = document.getElementById("player1-score");
-  const player2ScoreEl = document.getElementById("player2-score");
-
-  if (player1ScoreEl && player2ScoreEl) {
-    let player1Score = parseInt(player1ScoreEl.innerText);
-    let player2Score = parseInt(player2ScoreEl.innerText);
-
-    if (winner === player1) {
-      player1Score++;
-      player1ScoreEl.innerText = player1Score.toString();
-    } else if (winner === player2) {
-      player2Score++;
-      player2ScoreEl.innerText = player2Score.toString();
-    } else {
-      console.log("winner not found");
-    }
-    console.log("winner of round is: ", winner);
-  }
-});
-
-*/

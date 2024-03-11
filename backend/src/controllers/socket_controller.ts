@@ -7,12 +7,7 @@ import {
 	ServerToClientEvents,
 	WaitingPlayer,
 	RoomWithUsers,
-	GameEndedData,
-	PlayerReaction,
-	UserJoinResponse,
-	Player,
-	Highscore,
-	MatchResult
+	Scores,
 } from "@shared/types/SocketTypes";
 import prisma from "../prisma";
 import { User } from "@prisma/client";
@@ -26,7 +21,6 @@ let scores = {
 	player1: 0,
 	player2: 0,
 };
-let clicked: number = 0;
 
 export const handleConnection = (
 	socket: Socket<ClientToServerEvents, ServerToClientEvents>,
@@ -74,6 +68,7 @@ export const handleConnection = (
 				player1name: roomWithUsers.users[0].nickname,
 				player2name: roomWithUsers.users[1].nickname,
 			});
+			await sendHighscoreAndMatchHistory(io);
 		}
 
 		callback({
@@ -289,6 +284,8 @@ export const handleConnection = (
 				? userTwo.nickname
 				: "Oavgjort";
 
+
+
 		const gameEndedData = {
 			winner: winner,
 			scores: {
@@ -306,11 +303,23 @@ export const handleConnection = (
 			roundsPlayed: userOne.scores.length,
 		};
 
+		await saveMatchResult(userOne.nickname, userTwo.nickname, winner, scores);
+
 		// Spara högsta poäng etc.
 
 		io.to(roomId).emit("gameEnded", gameEndedData);
-		//saveMatchResult(playerOne,playerTwo,winner,scores);
+		await updateHighscore(userOne.nickname, GetAverageReactionMs(userOne.scores));
+  		await updateHighscore(userTwo.nickname, GetAverageReactionMs(userTwo.scores));
+		await sendHighscoreAndMatchHistory(io);
+
 	};
+
+	function GetAverageReactionMs(scores: number[]): number {
+		if (scores.length === 0) return 0;
+
+		const total = scores.reduce((sum, current) => sum + current, 0);
+		return total / scores.length;
+	  }
 
 	function GetScore(user: User): number {
 		return user.scores.reduce((accumulator, currentValue) => {
@@ -318,21 +327,17 @@ export const handleConnection = (
 		}, 0);
 	}
 
-	const saveMatchResult = async (
-		playerOne: Player,
-		playerTwo: Player,
-		winner: string,
-		scores: { player1: number, player2: number }[]
-	  ) => {
+	async function saveMatchResult(playerOne: string, playerTwo: string, winner: string | null, scores: Scores): Promise<void> {
 		await prisma.match.create({
 		  data: {
-			playerOne: playerOne.nickname,
-			playerTwo: playerTwo.nickname,
-			winner: winner === "tie" ? null : winner, // null om oavgjort, annars vinnarens nickname
+			playerOne,
+			playerTwo,
+			winner,
 			scores: JSON.stringify(scores),
 		  },
 		});
-	  };
+	  }
+
 
 	function emitVirusPosition(roomId: string) {
 		const x = Math.floor(Math.random() * 10) + 1;
@@ -348,6 +353,42 @@ export const handleConnection = (
 		return Math.random() * (1500 - 500) + 500;
 	}
 };
+
+async function updateHighscore(nickname: string, averageReactionMs: number): Promise<void> {
+	const existingHighscore = await prisma.highscore.findUnique({
+	  where: { nickname },
+	});
+
+	if (!existingHighscore || averageReactionMs < existingHighscore.averageReactionMs) {
+	  await prisma.highscore.upsert({
+		where: { nickname },
+		update: { averageReactionMs },
+		create: { nickname, averageReactionMs },
+	  });
+	}
+  }
+  async function sendHighscoreAndMatchHistory(io:Server): Promise<void> {
+	const highscores = await prisma.highscore.findMany({
+	  take: 10,
+	  orderBy: {
+		averageReactionMs: 'asc',
+	  },
+	});
+
+	const matchHistory = await prisma.match.findMany({
+	  take: 10,
+	  orderBy: {
+		createdAt: 'desc',
+	  },
+	});
+
+	io.emit('updateHighscore', highscores);
+	io.emit('updateMatchHistory', matchHistory);
+  }
+
+
+
+
 function calculateUserScores(userOne: User, userTwo: User) {
 	let totalPlayerOne = 0;
 	let totalPlayerTwo = 0;
