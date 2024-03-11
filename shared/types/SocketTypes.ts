@@ -2,10 +2,8 @@ export {};
 
 // Events emitted by the server to the client
 export interface ServerToClientEvents {
-  JoinTheGame: (nickename: string) => void;
-  GameTime: (message: GameTimeMessage) => void;
   UpdateLobby: (playerNames: string[]) => void;
-  positionVirus: (data: VirusPosition) => void;
+  positionVirus: (data: VirusPosition, roomId: string) => void;
   clickResponseTime: (elapsedTime: number, nickename: string) => void;
   winnerOfRound: (winner: string) => void;
   removeVirus: () => void;
@@ -14,19 +12,17 @@ export interface ServerToClientEvents {
   userJoined: (username: string, timestamp: number) => void;
   readyToStart: () => void;
   gameEnded: (data: GameEndedData) => void;
-  otherRegisterClick: (time: number,socketId:string) => void;
+  otherRegisterClick: (time: number, socketId: string) => void;
   stopTimer: () => void;
+  newRound: (roundCount: number) => void;
   updateFrontendScore: (data: {
     playerOneScore: number;
     playerTwoScore: number;
   }) => void;
-  newRound:(roundCount:number)=> void;
-  resetTimers:()=> void;
   PlayerJoined: (data: { player1name: string; player2name: string }) => void;
   updateStats: (data: { recentMatches: RecentMatches; highscores: Highscores }) => void;
-  
+  //startNextRound: (roundDetails: RoundDetails) => void;
 }
-
 
 // Events emitted by the client to the server
 export interface ClientToServerEvents {
@@ -34,8 +30,6 @@ export interface ClientToServerEvents {
     nickname: string,
     callback: (response: UserJoinResponse) => void
   ) => void;
-  virusClick: (nickname: string) => void;
-
   getRoomList: (callback: (rooms: Room[]) => void) => void;
   userJoinRequest: (
     nickname: string,
@@ -45,7 +39,7 @@ export interface ClientToServerEvents {
   playerReady: () => void;
   registerClick: (time: number) => void;
   stopTimer: () => void;
-  newRound:(roundCount:number)=> void;
+  newRound: (roundCount: number) => void;
 }
 
 export interface WaitingPlayer {
@@ -61,6 +55,7 @@ export interface User {
 export interface VirusPosition {
   x: number;
   y: number;
+  roomId?: string;
 }
 
 export interface GameTimeMessage {
@@ -93,12 +88,12 @@ export interface UserJoinResponse {
   success: boolean;
   room: RoomWithUsers | null;
   nicknames: string[];
-  player1name?: string; // Make these properties optional
+  player1name?: string;
   player2name?: string;
 }
 
 export interface PlayerReaction {
-    [key: string]: number;
+  [key: string]: number;
 }
 
 export interface Player {
@@ -106,15 +101,23 @@ export interface Player {
   nickname: string;
 }
 
-
 export interface GameEndedData {
   winner: string;
   scores: {
     Player1: number;
     Player2: number;
   };
+  nicknames: {
+    Player1: string;
+    Player2: string;
+  };
+  responsetime: {
+    Player1: number;
+    Player2: number;
+  };
   roundsPlayed: number;
 }
+
 export interface ScoreData {
   scores?: {
     player1: number;
@@ -126,7 +129,7 @@ export interface ScoreData {
   };
 }
 
- export interface UpdateLobbyData {
+export interface UpdateLobbyData {
   room: RoomWithUsers; // Antag att du har definierat RoomWithUsers någonstans
   nicknames: string[];
 }
