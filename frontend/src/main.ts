@@ -393,7 +393,7 @@ socket.on("updateScore", (data: ScoreData) => {
 
 function showVirus(x: number, y: number) {
   const virusImg = document.createElement("img");
-  virusImg.src = "/src/assets/Images/virus.png";
+  virusImg.src = "/images/virus.png";
   virusImg.alt = "ugly green virus";
   virusImg.setAttribute("id", "virusImage");
   console.log("bild", virusImg);
