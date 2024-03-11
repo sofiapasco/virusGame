@@ -35,6 +35,7 @@ export const handleConnection = (
 		);
 		debug(`User disconnected, removed from waitingPlayers: ${socket.id}`);
 	});
+	
 
 	// Lyssna efter anslutning till "JoinTheGame"-händelsen
 	socket.on("JoinTheGame", async (nickname: string, callback) => {
@@ -68,7 +69,9 @@ export const handleConnection = (
 				player1name: roomWithUsers.users[0].nickname,
 				player2name: roomWithUsers.users[1].nickname,
 			});
-			await sendHighscoreAndMatchHistory(io);
+			await sendHighscoreAndMatchHistory
+			await saveMatchResult
+
 		}
 
 		callback({
@@ -285,7 +288,6 @@ export const handleConnection = (
 				: "Oavgjort";
 
 
-
 		const gameEndedData = {
 			winner: winner,
 			scores: {
@@ -302,8 +304,6 @@ export const handleConnection = (
 			},
 			roundsPlayed: userOne.scores.length,
 		};
-
-		await saveMatchResult(userOne.nickname, userTwo.nickname, winner, scores);
 
 		// Spara högsta poäng etc.
 
@@ -338,7 +338,6 @@ export const handleConnection = (
 		});
 	  }
 
-
 	function emitVirusPosition(roomId: string) {
 		const x = Math.floor(Math.random() * 10) + 1;
 		const y = Math.floor(Math.random() * 10) + 1;
@@ -353,7 +352,7 @@ export const handleConnection = (
 		return Math.random() * (1500 - 500) + 500;
 	}
 };
-
+//uppdatera highscore
 async function updateHighscore(nickname: string, averageReactionMs: number): Promise<void> {
 	const existingHighscore = await prisma.highscore.findUnique({
 	  where: { nickname },
@@ -367,6 +366,7 @@ async function updateHighscore(nickname: string, averageReactionMs: number): Pro
 	  });
 	}
   }
+  //
   async function sendHighscoreAndMatchHistory(io:Server): Promise<void> {
 	const highscores = await prisma.highscore.findMany({
 	  take: 10,
@@ -385,7 +385,6 @@ async function updateHighscore(nickname: string, averageReactionMs: number): Pro
 	io.emit('updateHighscore', highscores);
 	io.emit('updateMatchHistory', matchHistory);
   }
-
 
 
 
@@ -411,3 +410,5 @@ function calculateUserScores(userOne: User, userTwo: User) {
 	}
 	return { totalPlayerOne, totalPlayerTwo };
 }
+
+

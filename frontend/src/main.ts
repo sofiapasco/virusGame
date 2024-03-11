@@ -71,6 +71,15 @@ const showStartRoom = () => {
   }
   waitingScreen.classList.add("hide");
   playingRoom.classList.add("hide");
+ 
+  const gameTitleContainer = document.getElementById('game-title');
+  if (gameTitleContainer) {
+    gameTitleContainer.style.display = 'none';
+  } 
+  const showNickname = document.getElementById('nickname-form');
+  if (showNickname) {
+    showNickname.style.display = 'block';
+  } 
 };
 
 // show waitingroom
@@ -142,6 +151,20 @@ const showPlayingRoom = () => {
       playerTwoScoreElement.textContent = data.playerTwoScore.toString();
     }
   });
+
+  const gameTitleContainer = document.getElementById('game-title');
+  if (gameTitleContainer) {
+    gameTitleContainer.style.display = 'block';
+  } 
+  const hideLobby = document.getElementById('lobby');
+  if (hideLobby) {
+    hideLobby.style.display = 'none';
+  } 
+  const showNickname = document.getElementById('nickname-form');
+  if (showNickname) {
+    showNickname.style.display = 'none';
+  } 
+
 };
 
 socket.on('updateHighscore', (highscores) => {
@@ -149,7 +172,8 @@ socket.on('updateHighscore', (highscores) => {
   list.innerHTML = ''; 
   highscores.forEach((score) => {
     const item = document.createElement('li');
-    item.textContent = `${score.nickname}: ${score.averageReactionMs} ms`;
+    item.textContent = `Highscore:
+    ${score.nickname}: ${score.averageReactionMs} `;
     list.appendChild(item);
   });
 });
@@ -317,15 +341,10 @@ moveOnwaitRoomButtonEl.addEventListener("click", (e) => {
   socket.emit("JoinTheGame", trimmedNickname, (response) => {
     console.log("JoinTheGame: Join was successful", response.success);
 
-    if (!response.success) {
-      alert("You can not play now, try again later");
-      return;
-    }
-
     if (response.player1name && response.player2name) {
       displayPlayerNames(response.player1name, response.player2name);
     } else {
-      alert("You cannot play now, try again later.");
+     
     }
 
     // Call showWaitingRoom with the nickname to display it
@@ -405,9 +424,9 @@ socket.on("updateScore", (data: ScoreData) => {
     // Uppdatera highscore-listan
     if (data.highscore) {
       const { player, score } = data.highscore;
-      const highscoreListElement = document.getElementById("highscore-list");
+      const highscoreListElement = document.getElementById("highscoreList");
       if (highscoreListElement) {
-        highscoreListElement.innerHTML = `<h2>Highscore</h2><p>${player} - ${score}</p>`;
+        highscoreListElement.innerHTML = `<h2>Highscore</h2><p>${player} - ${score} sek </p>`;
       }
     }
   }
@@ -454,27 +473,6 @@ socket.on("gameEnded", (data) => {
   if (player1ScoreElement && player2ScoreElement) {
     player1ScoreElement.textContent = data.scores.Player1.toString(); // Uppdaterar spelare 1:s poäng
     player2ScoreElement.textContent = data.scores.Player2.toString(); // Uppdaterar spelare 2:s poäng
-  }
-});
-
-socket.on("updateScore", (data: ScoreData) => {
-  if (data.scores) {
-    const player1ScoreEl = document.getElementById("player1-score");
-    const player2ScoreEl = document.getElementById("player2-score");
-
-    if (player1ScoreEl && player2ScoreEl) {
-      player1ScoreEl.textContent = data.scores.player1.toString();
-      player2ScoreEl.textContent = data.scores.player2.toString();
-    }
-
-    // Uppdatera highscore-listan
-    if (data.highscore) {
-      const { player, score } = data.highscore;
-      const highscoreListElement = document.getElementById("highscore-list");
-      if (highscoreListElement) {
-        highscoreListElement.innerHTML = `<h2>Highscore</h2><p>${player} - ${score}</p>`;
-      }
-    }
   }
 });
 
