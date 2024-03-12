@@ -140,6 +140,10 @@ const showWaitingRoom = (nickname: string) => {
   } else {
     console.error("Elementet för spelarlistan kunde inte hittas.");
   }
+  const highscoreMatches = document.getElementById("highscoreContainer");
+  if (highscoreMatches) {
+    highscoreMatches.style.display = "none";
+  }
 };
 
 //show playingroom
@@ -158,6 +162,25 @@ const showPlayingRoom = () => {
     startTimer(yourTimeElement);
     startTimer(opponentTimeElement);
   }
+  const gameTitleContainer = document.getElementById("game-title");
+  if (gameTitleContainer) {
+    gameTitleContainer.style.display = "block";
+  }
+ 
+  const showNickname = document.getElementById("nickname-form");
+  if (showNickname) {
+    showNickname.style.display = "none";
+  }
+
+  const highscoreMatches = document.getElementById("highscoreContainer");
+  if (highscoreMatches) {
+    highscoreMatches.style.display = "none";
+  }
+
+  const hideLobby = document.getElementById("lobby");
+  if (hideLobby) {
+    hideLobby.style.display = "none";
+  }
 
 
   // Lyssna på 'updateFrontendScore' eventet från servern
@@ -173,25 +196,8 @@ const showPlayingRoom = () => {
     if (playerTwoScoreElement) {
       playerTwoScoreElement.textContent = data.playerTwoScore.toString();
     }
-
-    const highscoreStart = document.getElementById("highscoreContainer");
-    if (highscoreStart) {
-      highscoreStart.style.display = "block";
-    }
   });
 
-  const gameTitleContainer = document.getElementById("game-title");
-  if (gameTitleContainer) {
-    gameTitleContainer.style.display = "block";
-  }
-  const hideLobby = document.getElementById("lobby");
-  if (hideLobby) {
-    hideLobby.style.display = "none";
-  }
-  const showNickname = document.getElementById("nickname-form");
-  if (showNickname) {
-    showNickname.style.display = "none";
-  }
 };
 
 
@@ -202,8 +208,8 @@ socket.on("updateHighscore", (highscores) => {
   list.innerHTML = "";
   highscores.forEach((score) => {
     const item = document.createElement("li");
-    item.textContent = `
-    ${score.nickname}: ${score.averageReactionMs} sek `;
+    item.innerHTML = `
+    ${score.nickname}: <strong>${score.averageReactionMs} </strong> sek `;
     list.appendChild(item);
   });
 });
@@ -222,11 +228,12 @@ socket.on("updateMatchHistory", (matchHistory) => {
     list.innerHTML = ""; // Rensa befintlig lista
     matchHistory.forEach((match) => {
       const item = document.createElement("li");
-      item.textContent = `${match.playerOne || "Unknown"} ${
+      item.innerHTML = `${match.playerOne || "Unknown"} ${
         match.playerOneScore
-      } - ${match.playerTwo || "Unknown"} ${match.playerTwoScore}, Winner: ${
+      } - ${match.playerTwo || "Unknown"} ${match.playerTwoScore} ms<br>
+      Winner:<strong> ${
         match.winner || "No winner"
-      }`;
+      }</strong>`;
       list.appendChild(item);
     }); 
   }
@@ -249,7 +256,7 @@ function startTimer(timerElement: HTMLElement): void {
     if (seconds == 30 && keepRunning) {
       setTimer(timerElement, false);
       if (timerElement == yourTimeElement) {
-        virusClick();
+       // virusClick();
       }
     }
 
