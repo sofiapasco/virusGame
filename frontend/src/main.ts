@@ -58,7 +58,7 @@ socket.on("connect", () => {
   console.log("💥 Connected to the server", SOCKET_HOST);
   console.log("🔗 Socket ID:", socket.id);
 
-  showStartRoom(); // visa startrummet
+  showStartRoom();
 });
 
 // Show start room - där inputfältet är
@@ -151,49 +151,14 @@ const showPlayingRoom = () => {
       playerTwoScoreElement.textContent = data.playerTwoScore.toString();
     }
   });
-
-  const gameTitleContainer = document.getElementById('game-title');
-  if (gameTitleContainer) {
-    gameTitleContainer.style.display = 'block';
-  } 
-  const hideLobby = document.getElementById('lobby');
-  if (hideLobby) {
-    hideLobby.style.display = 'none';
-  } 
-  const showNickname = document.getElementById('nickname-form');
-  if (showNickname) {
-    showNickname.style.display = 'none';
-  } 
-
 };
 
-socket.on('updateHighscore', (highscores) => {
-  const list = document.getElementById('highscoreList') as HTMLUListElement;
-  list.innerHTML = ''; 
-  highscores.forEach((score) => {
-    const item = document.createElement('li');
-    item.textContent = `Highscore:
-    ${score.nickname}: ${score.averageReactionMs} `;
-    list.appendChild(item);
-  });
-});
-
-socket.on('updateMatchHistory', (matchHistory) => {
-  const list = document.getElementById('matchHistoryList')as HTMLUListElement;
-  list.innerHTML = ''; // Rensa befintlig lista
-  matchHistory.forEach((match) => {
-    const item = document.createElement('li');
-    item.textContent = `Player 1: ${match.playerOne}, Player 2: ${match.playerTwo}, Winner: ${match.winner}`;
-    list.appendChild(item);
-  });
-});
-
-
+let startTime: number;
 // Funktion för att starta en timer
 function startTimer(timerElement: HTMLElement): void {
   intervalMap.set(timerElement, true);
   console.log("Start timer: " + timerElement.innerHTML);
-  // Uppdatera elementet varje sekund
+
   window.setInterval(() => {
     let seconds: number = timerElement
       ? parseInt(timerElement.innerText, 10)
@@ -203,19 +168,16 @@ function startTimer(timerElement: HTMLElement): void {
 
     if (seconds == 30 && keepRunning) {
       setTimer(timerElement, false);
-
-      //If its your Timer, we send a click for 30s.
-      //If its the opponents, we just stop at 30.
       if (timerElement == yourTimeElement) {
         virusClick();
       }
     }
 
     if (seconds <= 30 && keepRunning) {
-      const secondsFormatted: string = seconds.toString().padStart(2, "0");
+      const secondsFormatted: string = seconds.toString();
       timerElement.textContent = `${secondsFormatted}`;
     }
-  }, 2000);
+  }, 1000);
 }
 
 socket.on("connect", () => {
@@ -233,6 +195,7 @@ function resetTimers(): void {
   if (yourTimeElement !== null && opponentTimeElement !== null) {
     yourTimeElement.innerText = "00";
     opponentTimeElement.innerText = "00";
+    startTime = Date.now();
     setTimer(yourTimeElement, true);
     setTimer(opponentTimeElement, true);
   }
@@ -242,7 +205,7 @@ socket.on("otherRegisterClick", (time) => {
   console.log("Andra spelarens klick:" + time);
   if (opponentTimeElement) {
     setTimer(opponentTimeElement, false);
-    opponentTimeElement.innerText = time.toString().padStart(2, "0");
+    opponentTimeElement.innerText = (time / 1000).toString();
   } else {
     console.error("The opponent's timer element was not found.");
   }
@@ -287,19 +250,15 @@ socket.on("OtherPlayerJoined", (response) => {
   updateLobby(response.nicknames);
 });
 
+function isPlayerMe(name: string) {
+  return nickNameInput.value.trim() == name.trim();
+}
 socket.on("PlayerJoined", (data) => {
   // Uppdatera UI här, exempelvis:
-  const player1NameElement = document.getElementById("player1-name");
-  const player2NameElement = document.getElementById("player2-name");
-
-  if (player1NameElement) player1NameElement.textContent = data.player1name;
-  if (player2NameElement) player2NameElement.textContent = data.player2name;
+  displayPlayerNames(data.player1name, data.player2name);
 });
 
 socket.on("updateFrontendScore", (data) => {
-  // Data är det objekt som innehåller poängen, till exempel:
-  // { playerOneScore: 5, playerTwoScore: 3 }
-
   // Uppdatera poängen på webbsidan för spelare 1
   const playerOneScoreElement = document.getElementById("player1-score");
   if (playerOneScoreElement) {
@@ -356,8 +315,13 @@ function displayPlayerNames(player1name: string, player2name: string) {
   const player1NameElement = document.getElementById("player1-name");
   const player2NameElement = document.getElementById("player2-name");
 
-  if (player1NameElement) player1NameElement.textContent = player1name;
-  if (player2NameElement) player2NameElement.textContent = player2name;
+  if (isPlayerMe(player1name)) {
+    if (player1NameElement) player1NameElement.textContent = player1name;
+    if (player2NameElement) player2NameElement.textContent = player2name;
+  } else {
+    if (player1NameElement) player1NameElement.textContent = player2name;
+    if (player2NameElement) player2NameElement.textContent = player1name;
+  }
 }
 
 /**
@@ -367,8 +331,6 @@ function displayPlayerNames(player1name: string, player2name: string) {
 
 socket.on("positionVirus", (data: VirusPosition, roomId: string) => {
   console.log(`Virus position received for room ${roomId}:`, data.x, data.y);
-
-  // Använd data.x och data.y för att visa viruset.
   showVirus(data.x, data.y);
 });
 
@@ -382,7 +344,11 @@ function virusClick() {
 
   if (yourTimeElement !== null) {
     setTimer(yourTimeElement, false);
-    const timerValue = parseInt(yourTimeElement.innerText, 10);
+    const timerValue = Date.now() - startTime;
+    console.log(timerValue);
+    if (yourTimeElement) {
+      yourTimeElement.innerText = (timerValue / 1000).toString();
+    }
     socket.emit("registerClick", timerValue);
   } else {
     console.error("The element #player1-time was not found.");
@@ -434,7 +400,7 @@ socket.on("updateScore", (data: ScoreData) => {
 
 function showVirus(x: number, y: number) {
   const virusImg = document.createElement("img");
-  virusImg.src = "/src/assets/Images/virus.png";
+  virusImg.src = "/images/virus.png";
   virusImg.alt = "ugly green virus";
   virusImg.setAttribute("id", "virusImage");
   console.log("bild", virusImg);
@@ -451,7 +417,7 @@ function showVirus(x: number, y: number) {
   } else {
     gameBoard.appendChild(virusImg);
   }
-
+  startTime = Date.now();
   // Gör bilden klickbar genom att lägga till en 'click'-händelselyssnare
   if (virusImg) {
     virusImg.addEventListener("click", virusClick);
@@ -466,7 +432,6 @@ socket.on("gameEnded", (data) => {
     winnerElement.textContent = data.winner; // Visar vinnarens namn
   }
 
-  // Antag att 'data.scores' är ett objekt med poäng för 'player1' och 'player2', till exempel: { player1: 3, player2: 2 }
   const player1ScoreElement = document.getElementById("player1-score");
   const player2ScoreElement = document.getElementById("player2-score");
 
