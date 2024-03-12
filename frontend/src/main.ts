@@ -60,6 +60,8 @@ socket.on("connect", () => {
   showStartRoom();
 });
 
+
+
 socket.emit("requestHighscoreAndMatchHistory");
 
 // Show start room - där inputfältet är
@@ -143,6 +145,7 @@ const showPlayingRoom = () => {
     startTimer(opponentTimeElement);
   }
 
+
   // Lyssna på 'updateFrontendScore' eventet från servern
   socket.on("updateFrontendScore", (data) => {
     // Uppdatera poängen på webbsidan för spelare 1
@@ -176,6 +179,9 @@ const showPlayingRoom = () => {
     showNickname.style.display = "none";
   }
 };
+
+
+
 
 socket.on("updateHighscore", (highscores) => {
   const list = document.getElementById("highscoreList") as HTMLUListElement;
@@ -211,7 +217,7 @@ socket.on("updateMatchHistory", (matchHistory) => {
     }); // Här är den saknade parentesen
   }
 });
-
+let startTime :number;
 // Funktion för att starta en timer
 function startTimer(timerElement: HTMLElement): void {
   intervalMap.set(timerElement, true);
@@ -237,6 +243,7 @@ function startTimer(timerElement: HTMLElement): void {
     }
   }, 1000);
 }
+
 
 socket.on("connect", () => {
   console.log("Connected to the server", SOCKET_HOST);
