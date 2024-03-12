@@ -209,7 +209,7 @@ socket.on("updateHighscore", (highscores) => {
   highscores.forEach((score) => {
     const item = document.createElement("li");
     item.innerHTML = `
-    ${score.nickname}: <strong>${score.averageReactionMs} </strong> sek `;
+    ${score.nickname}: <strong>${score.averageReactionMs} </strong> ms `;
     list.appendChild(item);
   });
 });
