@@ -551,15 +551,15 @@ const gameWrap = document.getElementById("game-wrapper");
     gameWrap.style.display = "none";
   }
 
-//  setTimeout(() => {
+
   location.reload();
  
  const nicknameDiv = document.getElementById("nickname");
  if (nicknameDiv) {
-   nicknameDiv.classList.remove("hide"); // Försäkra att elementet är synligt
+   nicknameDiv.classList.remove("hide");
    nicknameDiv.scrollIntoView({ behavior: "smooth" });
  }
-//  }, 100);
+
 
 });
 
