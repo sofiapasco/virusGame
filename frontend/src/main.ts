@@ -89,6 +89,9 @@ const showStartRoom = () => {
   if (highscoreStart) {
     highscoreStart.style.display = "block";
   }
+  
+
+
 };
 
 // show waitingroom
@@ -181,6 +184,11 @@ const showPlayingRoom = () => {
   const hideLobby = document.getElementById("lobby");
   if (hideLobby) {
     hideLobby.style.display = "none";
+    hideLobby.style.display = "none";
+    hideLobby.innerHTML = "";
+    hideLobby.style.border = "none"; 
+    hideLobby.style.paddingTop = "40px"; 
+  
   }
 
 
@@ -396,6 +404,11 @@ moveOnwaitRoomButtonEl.addEventListener("click", (e) => {
 
     // Call showWaitingRoom with the nickname to display it
     showWaitingRoom(trimmedNickname!);
+
+    const gameTitleContainer = document.getElementById("game-title");
+    if (gameTitleContainer) {
+      gameTitleContainer.style.display = "block";
+    }
   });
 });
 
