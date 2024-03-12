@@ -341,7 +341,7 @@ function addSocketToRoom(socketId: string, roomId: string) {
 			winner,
 			playerOneScore: scores.player1,
 			playerTwoScore: scores.player2,
-			
+
 		  },
 		});
 	  }

@@ -534,9 +534,33 @@ function updateFrontend(data: GameEndedData): void {
   document.getElementById("winner")!.textContent = `Congratulations ${data.winner}. You are the winner!`;
 }
 
-document.getElementById("rematch-yes")!.addEventListener("click", showStartRoom);
+const customConfirm = document.getElementById("custom-confirm");
+
+document.getElementById("rematch-yes")!.addEventListener("click", () => {
+ showStartRoom();
+ if (customConfirm) {
+ customConfirm.style.display = "none"; 
+ }
+});
+
+document.getElementById("rematch-no")!.addEventListener("click", () => {
+  if (customConfirm) {
+  customConfirm.style.display = "none"; 
+
+  const gifImage = document.getElementById("gif-image");
+  if (gifImage) {
+    gifImage.classList.remove("hide"); 
+  }
+  const fullscreenOverlay = document.getElementById("fullscreen-overlay");
+  if (fullscreenOverlay) {
+    fullscreenOverlay.classList.remove("hide");
+  }
+ }});
 
 socket.on("gameEnded", (data: GameEndedData) => {
   console.log("Game Ended Data:", data);
   updateFrontend(data);
+  if (customConfirm) {
+  customConfirm.classList.remove("hide");
+  }
 });
