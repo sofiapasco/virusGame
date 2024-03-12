@@ -228,7 +228,7 @@ socket.on("updateMatchHistory", (matchHistory) => {
         match.winner || "No winner"
       }`;
       list.appendChild(item);
-    }); // Här är den saknade parentesen
+    }); 
   }
 });
 
