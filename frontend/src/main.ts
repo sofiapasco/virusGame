@@ -4,6 +4,7 @@ import {
   ServerToClientEvents,
   VirusPosition,
   ScoreData,
+  GameEndedData,
 } from "@shared/types/SocketTypes";
 import "./assets/scss/style.scss";
 
@@ -460,7 +461,7 @@ socket.on("newRound", (round) => {
 });
 
 socket.on("winnerOfRound", (winner) => {
-  console.log("Vinnaren av rundan är:", winner);
+  console.log("Winner of round:", winner);
 });
 
 // Lyssna efter uppdateringar från servern
@@ -527,3 +528,12 @@ socket.on("gameEnded", (data) => {
     player2ScoreElement.textContent = data.scores.Player2.toString(); // Uppdaterar spelare 2:s poäng
   }
 });
+
+socket.on("gameEnded", (data: GameEndedData) => {
+  console.log("Game Ended Data:", data);
+  updateFrontend(data);
+});
+ 
+function updateFrontend(data: GameEndedData): void {
+  document.getElementById("winner")!.textContent = `Congratulations ${data.winner}. You are the winner!`;
+}
