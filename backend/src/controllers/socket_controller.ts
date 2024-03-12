@@ -17,10 +17,6 @@ const debug = Debug("backend:socket_controller");
 
 let waitingPlayers: WaitingPlayer[] = [];
 const MAX_ROUNDS = 10;
-let scores = {
-	player1: 0,
-	player2: 0,
-};
 
 export const handleConnection = (
 	socket: Socket<ClientToServerEvents, ServerToClientEvents>,
@@ -35,7 +31,7 @@ export const handleConnection = (
 		);
 		debug(`User disconnected, removed from waitingPlayers: ${socket.id}`);
 	});
-	
+
 
 	// Lyssna efter anslutning till "JoinTheGame"-händelsen
 	socket.on("JoinTheGame", async (nickname: string, callback) => {
@@ -69,8 +65,7 @@ export const handleConnection = (
 				player1name: roomWithUsers.users[0].nickname,
 				player2name: roomWithUsers.users[1].nickname,
 			});
-			await sendHighscoreAndMatchHistory
-			await saveMatchResult
+
 
 		}
 
@@ -81,16 +76,21 @@ export const handleConnection = (
 		});
 	});
 
-	function addSocketToRoom(socketId: string, roomId: string) {
-		const targetSocket = io.sockets.sockets.get(socketId);
-		console.log("Adding socket " + socketId + "to Room: " + roomId);
-		if (targetSocket) {
-			targetSocket.join(roomId);
-			console.log(`Socket ${socketId} added to room ${roomId}`);
-		} else {
-			console.log(`Socket ${socketId} does not exist.`);
-		}
+socket.on('requestHighscoreAndMatchHistory', async () => {
+	await sendHighscoreAndMatchHistory(io);
+	});
+
+
+function addSocketToRoom(socketId: string, roomId: string) {
+	const targetSocket = io.sockets.sockets.get(socketId);
+	console.log("Adding socket " + socketId + "to Room: " + roomId);
+	if (targetSocket) {
+		targetSocket.join(roomId);
+		console.log(`Socket ${socketId} added to room ${roomId}`);
+	} else {
+		console.log(`Socket ${socketId} does not exist.`);
 	}
+}
 
 	async function initiateGameIfReady(
 		players: WaitingPlayer[]
@@ -261,6 +261,13 @@ export const handleConnection = (
 				roomId: roomId, // the user is in the same room
 			},
 		});
+		  // Beräkna genomsnittlig reaktionstid och uppdatera highscore för varje användare
+		  for (const user of users) {
+			if (user.scores.length > 0) {
+			  const averageReactionMs = user.scores.reduce((sum, current) => sum + current, 0) / user.scores.length;
+			  await updateHighscore(user.nickname, averageReactionMs);
+			}
+		  }
 
 		let userOne = users[0];
 		let userTwo = users[1];
@@ -298,10 +305,16 @@ export const handleConnection = (
 			roundsPlayed: userOne.scores.length,
 		};
 
+		await saveMatchResult(userOne.nickname, userTwo.nickname, winner, { player1: totalPlayerOneScore, player2: totalPlayerTwoScore });
+
+		// Spara högsta poäng etc.
+
 		io.to(roomId).emit("gameEnded", gameEndedData);
 		await updateHighscore(userOne.nickname, GetAverageReactionMs(userOne.scores));
   		await updateHighscore(userTwo.nickname, GetAverageReactionMs(userTwo.scores));
+
 		await sendHighscoreAndMatchHistory(io);
+
 
 	};
 
@@ -318,13 +331,15 @@ export const handleConnection = (
 		}, 0);
 	}
 
-	async function saveMatchResult(playerOne: string, playerTwo: string, winner: string | null, scores: Scores): Promise<void> {
+	async function saveMatchResult(playerOne: string, playerTwo: string, winner: string | "oavgjort", scores: Scores): Promise<void> {
 		await prisma.match.create({
 		  data: {
 			playerOne,
 			playerTwo,
 			winner,
-			scores: JSON.stringify(scores),
+			playerOneScore: scores.player1,
+			playerTwoScore: scores.player2,
+			//scores: JSON.stringify(scores),
 		  },
 		});
 	  }
@@ -357,7 +372,7 @@ async function updateHighscore(nickname: string, averageReactionMs: number): Pro
 	  });
 	}
   }
-  //
+  //skicka highscore och senaste matcherna
   async function sendHighscoreAndMatchHistory(io:Server): Promise<void> {
 	const highscores = await prisma.highscore.findMany({
 	  take: 10,

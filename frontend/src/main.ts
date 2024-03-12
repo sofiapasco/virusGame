@@ -4,7 +4,6 @@ import {
   ServerToClientEvents,
   VirusPosition,
   ScoreData,
-
 } from "@shared/types/SocketTypes";
 import "./assets/scss/style.scss";
 
@@ -61,6 +60,8 @@ socket.on("connect", () => {
   showStartRoom();
 });
 
+socket.emit("requestHighscoreAndMatchHistory");
+
 // Show start room - där inputfältet är
 const showStartRoom = () => {
   const nicknameScreen = document.getElementById("nickname");
@@ -71,15 +72,20 @@ const showStartRoom = () => {
   }
   waitingScreen.classList.add("hide");
   playingRoom.classList.add("hide");
- 
-  const gameTitleContainer = document.getElementById('game-title');
+
+  const gameTitleContainer = document.getElementById("game-title");
   if (gameTitleContainer) {
-    gameTitleContainer.style.display = 'none';
-  } 
-  const showNickname = document.getElementById('nickname-form');
+    gameTitleContainer.style.display = "none";
+  }
+  const showNickname = document.getElementById("nickname-form");
   if (showNickname) {
-    showNickname.style.display = 'block';
-  } 
+    showNickname.style.display = "block";
+  }
+
+  const highscoreStart = document.getElementById("highscoreContainer");
+  if (highscoreStart) {
+    highscoreStart.style.display = "block";
+  }
 };
 
 // show waitingroom
@@ -150,10 +156,62 @@ const showPlayingRoom = () => {
     if (playerTwoScoreElement) {
       playerTwoScoreElement.textContent = data.playerTwoScore.toString();
     }
+
+    const highscoreStart = document.getElementById("highscoreContainer");
+    if (highscoreStart) {
+      highscoreStart.style.display = "block";
+    }
   });
+
+  const gameTitleContainer = document.getElementById("game-title");
+  if (gameTitleContainer) {
+    gameTitleContainer.style.display = "block";
+  }
+  const hideLobby = document.getElementById("lobby");
+  if (hideLobby) {
+    hideLobby.style.display = "none";
+  }
+  const showNickname = document.getElementById("nickname-form");
+  if (showNickname) {
+    showNickname.style.display = "none";
+  }
 };
 
-let startTime: number;
+socket.on("updateHighscore", (highscores) => {
+  const list = document.getElementById("highscoreList") as HTMLUListElement;
+  list.innerHTML = "";
+  highscores.forEach((score) => {
+    const item = document.createElement("li");
+    item.textContent = `
+    ${score.nickname}: ${score.averageReactionMs} sek `;
+    list.appendChild(item);
+  });
+});
+
+socket.on("updateMatchHistory", (matchHistory) => {
+  const list = document.getElementById("matchHistoryList") as HTMLUListElement;
+  if (!list) {
+    console.error("The matchHistoryList element was not found.");
+    return;
+  }
+  if (!matchHistory || matchHistory.length === 0) {
+    // Hantera fall då matchHistory är null eller tom.
+    list.innerHTML = "<li>No match history available.</li>";
+    return;
+  } else {
+    list.innerHTML = ""; // Rensa befintlig lista
+    matchHistory.forEach((match) => {
+      const item = document.createElement("li");
+      item.textContent = `${match.playerOne || "Unknown"} ${
+        match.playerOneScore
+      } - ${match.playerTwo || "Unknown"} ${match.playerTwoScore}, Winner: ${
+        match.winner || "No winner"
+      }`;
+      list.appendChild(item);
+    }); // Här är den saknade parentesen
+  }
+});
+
 // Funktion för att starta en timer
 function startTimer(timerElement: HTMLElement): void {
   intervalMap.set(timerElement, true);
@@ -303,7 +361,6 @@ moveOnwaitRoomButtonEl.addEventListener("click", (e) => {
     if (response.player1name && response.player2name) {
       displayPlayerNames(response.player1name, response.player2name);
     } else {
-     
     }
 
     // Call showWaitingRoom with the nickname to display it
@@ -440,4 +497,3 @@ socket.on("gameEnded", (data) => {
     player2ScoreElement.textContent = data.scores.Player2.toString(); // Uppdaterar spelare 2:s poäng
   }
 });
-

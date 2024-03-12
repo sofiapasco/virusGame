@@ -40,6 +40,7 @@ export interface ClientToServerEvents {
   registerClick: (time: number) => void;
   stopTimer: () => void;
   newRound: (roundCount: number) => void;
+  requestHighscoreAndMatchHistory: () => void;
 }
 
 export interface WaitingPlayer {
@@ -148,5 +149,6 @@ export interface Match {
   playerOne: string;
   playerTwo: string;
   winner: string;
-  scores: { player1: number; player2: number };
+  playerOneScore: number;
+  playerTwoScore: number;
 }

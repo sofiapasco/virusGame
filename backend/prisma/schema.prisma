@@ -32,10 +32,11 @@ model MatchResult {
 
 model Match {
   id        String     @id @default(auto()) @map("_id") @db.ObjectId
-  playerOne String   // AnvändarID eller nickname för spelare ett
-  playerTwo String   // AnvändarID eller nickname för spelare två
-  winner    String?  // AnvändarID eller nickname för vinnaren, null om oavgjort
-  scores    Json     // JSON-sträng med poäng för varje runda, exempel: [{playerOne: 250, playerTwo: 300}, ...]
+  playerOne String   
+  playerTwo String   
+  winner    String?  
+  playerOneScore  Int
+  playerTwoScore  Int  
   createdAt DateTime @default(now())
 }
 
