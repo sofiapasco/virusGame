@@ -529,11 +529,14 @@ socket.on("gameEnded", (data) => {
   }
 });
 
-socket.on("gameEnded", (data: GameEndedData) => {
-  console.log("Game Ended Data:", data);
-  updateFrontend(data);
-});
  
 function updateFrontend(data: GameEndedData): void {
   document.getElementById("winner")!.textContent = `Congratulations ${data.winner}. You are the winner!`;
 }
+
+document.getElementById("rematch-yes")!.addEventListener("click", showStartRoom);
+
+socket.on("gameEnded", (data: GameEndedData) => {
+  console.log("Game Ended Data:", data);
+  updateFrontend(data);
+});

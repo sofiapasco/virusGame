@@ -7,9 +7,9 @@ body {
   background-color: $bg-color;
 }
 
-.hide {
-  display: none;
-}
+// .hide {
+//   display: none;
+// }
 
 //nicknamevy
 
@@ -183,6 +183,36 @@ body {
   height: 50px;
   cursor: pointer;
 }
+
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgb(192, 180, 172);
+  padding: 30px;
+  border: 2px solid black;
+  color: blue;
+  font-size: x-large;
+  border-radius: 4px;
+  font-weight: bold;
+  z-index: 9999;
+}
+
+.popup-content {
+  text-align: center;
+}
+
+button {
+  margin: 0 15px;
+  border-radius: 10%;
+}
+
+button:hover {
+  background-color: rgb(255, 255, 255);
+  border: 2px solid greenyellow
+}
+
 
 .content-wrapper {
   display: flex;
