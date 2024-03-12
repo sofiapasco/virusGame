@@ -525,22 +525,22 @@ function showVirus(x: number, y: number) {
   }
 }
 
-socket.on("gameEnded", (data) => {
-  console.log("Spelet slutade. Vinnare:", data.winner, "Poäng:", data.scores);
+// socket.on("gameEnded", (data) => {
+//   console.log("Spelet slutade. Vinnare:", data.winner, "Poäng:", data.scores);
 
-  const winnerElement = document.getElementById("game-winner");
-  if (winnerElement) {
-    winnerElement.textContent = data.winner; // Visar vinnarens namn
-  }
+//   const winnerElement = document.getElementById("game-winner");
+//   if (winnerElement) {
+//     winnerElement.textContent = data.winner; // Visar vinnarens namn
+//   }
 
-  const player1ScoreElement = document.getElementById("player1-score");
-  const player2ScoreElement = document.getElementById("player2-score");
+//   const player1ScoreElement = document.getElementById("player1-score");
+//   const player2ScoreElement = document.getElementById("player2-score");
 
-  if (player1ScoreElement && player2ScoreElement) {
-    player1ScoreElement.textContent = data.scores.Player1.toString(); // Uppdaterar spelare 1:s poäng
-    player2ScoreElement.textContent = data.scores.Player2.toString(); // Uppdaterar spelare 2:s poäng
-  }
-});
+//   if (player1ScoreElement && player2ScoreElement) {
+//     player1ScoreElement.textContent = data.scores.Player1.toString(); // Uppdaterar spelare 1:s poäng
+//     player2ScoreElement.textContent = data.scores.Player2.toString(); // Uppdaterar spelare 2:s poäng
+//   }
+// });
 
  
 function updateFrontend(data: GameEndedData): void {
@@ -550,10 +550,30 @@ function updateFrontend(data: GameEndedData): void {
 const customConfirm = document.getElementById("custom-confirm");
 
 document.getElementById("rematch-yes")!.addEventListener("click", () => {
- showStartRoom();
  if (customConfirm) {
- customConfirm.style.display = "none"; 
+ customConfirm.style.display = "none"; //hide popup
  }
+
+ const showNickname = document.getElementById("nickname-form");
+  if (showNickname) {
+    showNickname.style.display = "block";
+  }
+ 
+const gameWrap = document.getElementById("game-wrapper");
+  if (gameWrap) {
+    gameWrap.style.display = "none";
+  }
+
+
+  location.reload();
+ 
+ const nicknameDiv = document.getElementById("nickname");
+ if (nicknameDiv) {
+   nicknameDiv.classList.remove("hide");
+   nicknameDiv.scrollIntoView({ behavior: "smooth" });
+ }
+
+
 });
 
 document.getElementById("rematch-no")!.addEventListener("click", () => {
@@ -573,6 +593,12 @@ document.getElementById("rematch-no")!.addEventListener("click", () => {
 socket.on("gameEnded", (data: GameEndedData) => {
   console.log("Game Ended Data:", data);
   updateFrontend(data);
+
+  // if (data.scores) {
+  //   data.scores.Player1 = 0;
+  //   data.scores.Player2 = 0;
+  // };
+
   if (customConfirm) {
   customConfirm.classList.remove("hide");
   }
