@@ -114,6 +114,20 @@ const showWaitingRoom = (nickname: string) => {
     console.error("Elementet för meddelandet kunde inte hittas.");
   }
 
+  const gameTitleContainer = document.getElementById('game-title');
+  if (gameTitleContainer) {
+    gameTitleContainer.style.display = 'none';
+  } 
+  const hideLobby = document.getElementById('lobby');
+  if (hideLobby) {
+    hideLobby.style.display = 'block';
+  } 
+  const showNickname = document.getElementById('nickname-form');
+  if (showNickname) {
+    showNickname.style.display = 'none';
+  } 
+
+
   // Skapa ett nytt listelement för att visa spelarens nickname
   const playerListItem = document.createElement("li");
   playerListItem.textContent = nickname;
@@ -217,6 +231,8 @@ socket.on("updateMatchHistory", (matchHistory) => {
     }); // Här är den saknade parentesen
   }
 });
+
+
 let startTime :number;
 // Funktion för att starta en timer
 function startTimer(timerElement: HTMLElement): void {
@@ -456,7 +472,7 @@ socket.on("updateScore", (data: ScoreData) => {
       const { player, score } = data.highscore;
       const highscoreListElement = document.getElementById("highscoreList");
       if (highscoreListElement) {
-        highscoreListElement.innerHTML = `<h2>Highscore</h2><p>${player} - ${score} sek </p>`;
+        highscoreListElement.innerHTML = `<p>${player} - ${score} sek </p>`;
       }
     }
   }

@@ -66,7 +66,9 @@ export const handleConnection = (
 				player2name: roomWithUsers.users[1].nickname,
 			});
 
-
+			await sendHighscoreAndMatchHistory(io);
+			await sendHighscoreAndMatchHistory
+			await saveMatchResult
 		}
 
 		callback({
@@ -339,7 +341,7 @@ function addSocketToRoom(socketId: string, roomId: string) {
 			winner,
 			playerOneScore: scores.player1,
 			playerTwoScore: scores.player2,
-			//scores: JSON.stringify(scores),
+			
 		  },
 		});
 	  }
