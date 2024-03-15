@@ -22,6 +22,7 @@ export interface ServerToClientEvents {
   updateHighscore: (highscores: Highscore[]) => void;
   updateMatchHistory: (matchHistory: Match[]) => void;
   updateScore: (data: ScoreData) => void;
+  playerLeft: (data: { userId: string; message: string }) => void;
 }
 
 // Events emitted by the client to the server

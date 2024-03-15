@@ -372,12 +372,19 @@ socket.on("updateFrontendScore", (data) => {
 // Listen for when server got tired of us
 socket.on("disconnect", () => {
   console.log("💀 Disconnected from the server:", SOCKET_HOST);
+ 
 });
 
 // Listen for when we're reconnected (either due to our or the servers connection)
 socket.io.on("reconnect", () => {
   console.log("🍽️ Reconnected to the server:", SOCKET_HOST);
   console.log("🔗 Socket ID:", socket.id);
+});
+
+
+socket.on("playerLeft", (data) => {
+  console.log(data.message); // Loggar meddelandet från servern
+  alert(data.message); // Visar en alert när någon annan spelare lämnar spelet
 });
 /**
  * När spelaren har skrvit in sitt 'nickname'

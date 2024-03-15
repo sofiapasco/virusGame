@@ -30,6 +30,8 @@ export const handleConnection = (
 			(player) => player.socketId !== socket.id
 		);
 		debug(`User disconnected, removed from waitingPlayers: ${socket.id}`);
+
+		socket.broadcast.emit('playerLeft', { userId: socket.id, message: 'En spelare har lämnat spelet.' });
 	});
 
 
